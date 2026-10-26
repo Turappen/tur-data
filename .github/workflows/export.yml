@@ -1,0 +1,59 @@
+name: Eksporter data fra Back4App
+
+on:
+  schedule:
+    - cron: '1 9-23 * * *'
+      timezone: 'Europe/Oslo'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Hent toppliste
+        shell: bash
+        run: |
+          mkdir -p public
+          cp index.html public/
+          curl -sf -G "https://parseapi.back4app.com/users" \
+            -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+            -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+            --data-urlencode 'where={"Points2026":{"$exists":true}}' \
+            --data-urlencode 'order=-Points2026' \
+            --data-urlencode 'limit=500' \
+            --data-urlencode 'keys=username,Points2026' \
+            | jq -c '
+                .results as $r
+                | {
+                    generatedAt: (now | todateiso8601),
+                    entries: [
+                      $r[] | .Points2026 as $p
+                      | {
+                          rank: ([$r[] | select(.Points2026 > $p)] | length + 1),
+                          name: (.username | gsub("^\\s+|\\s+$"; "")),
+                          points: $p
+                        }
+                    ]
+                  }' \
+            > public/toplist.json
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: public
+
+      - id: deployment
+        uses: actions/deploy-pages@v5
