@@ -2,7 +2,7 @@ name: Eksporter data fra Back4App
 
 on:
   schedule:
-    - cron: '1,16,31,46 9-23 * * *'
+    - cron: '1,31 9-23 * * *'   # xx:01 og xx:31 fra kl. 09 til 23
       timezone: 'Europe/Oslo'
   workflow_dispatch:
 
@@ -36,7 +36,7 @@ jobs:
             --data-urlencode 'where={"Points2026":{"$exists":true}}' \
             --data-urlencode 'order=-Points2026' \
             --data-urlencode 'limit=500' \
-            --data-urlencode 'keys=username,Points2026' \
+            --data-urlencode 'keys=username,kommune,Points2026' \
             | jq -c '
                 .results as $r
                 | {
@@ -46,6 +46,7 @@ jobs:
                       | {
                           rank: ([$r[] | select(.Points2026 > $p)] | length + 1),
                           name: (.username | gsub("^\\s+|\\s+$"; "")),
+                          kommune: ((.kommune // "") | tostring | gsub("^\\s+|\\s+$"; "")),
                           points: $p
                         }
                     ]
@@ -67,7 +68,7 @@ jobs:
             --data-urlencode "where={\"$FIELD\":{\"\$gt\":0}}" \
             --data-urlencode "order=-$FIELD" \
             --data-urlencode 'limit=200' \
-            --data-urlencode "keys=username,$FIELD" \
+            --data-urlencode "keys=username,kommune,$FIELD" \
             | jq -c --arg f "$FIELD" '
                 .results as $r
                 | {
@@ -78,6 +79,7 @@ jobs:
                       | {
                           rank: ([$r[] | select(.[$f] > $p)] | length + 1),
                           name: (.username | gsub("^\\s+|\\s+$"; "")),
+                          kommune: ((.kommune // "") | tostring | gsub("^\\s+|\\s+$"; "")),
                           points: $p
                         }
                     ]
