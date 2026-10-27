@@ -1,0 +1,78 @@
+name: Lag månedsarkiv
+
+on:
+  workflow_dispatch:   # kjøres bare manuelt
+
+permissions:
+  contents: write      # for å lagre filene i repoet
+  actions: write       # for å starte publiseringen etterpå
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Hent topplister for tidligere måneder
+        shell: bash
+        run: |
+          set -euo pipefail
+          MONTHS=(Januar Februar Mars April Mai Juni Juli August September Oktober November Desember)
+          CUR=$(TZ=Europe/Oslo date +%-m)
+          YEAR=$(TZ=Europe/Oslo date +%Y)
+          mkdir -p months
+          FIELDS=()
+
+          for ((i=1; i<CUR; i++)); do
+            FIELD="${MONTHS[$((i-1))]}${YEAR}"
+            FIELDS+=("$FIELD")
+            echo "Henter $FIELD"
+
+            curl -sf -G "https://parseapi.back4app.com/users" \
+              -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+              -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+              --data-urlencode "where={\"$FIELD\":{\"\$gt\":0}}" \
+              --data-urlencode "order=-$FIELD" \
+              --data-urlencode 'limit=200' \
+              --data-urlencode "keys=username,$FIELD" \
+              | jq -c --arg f "$FIELD" '
+                  .results as $r
+                  | {
+                      month: $f,
+                      generatedAt: (now | todateiso8601),
+                      entries: [
+                        $r[] | .[$f] as $p
+                        | {
+                            rank: ([$r[] | select(.[$f] > $p)] | length + 1),
+                            name: (.username | gsub("^\\s+|\\s+$"; "")),
+                            points: $p
+                          }
+                      ]
+                    }' \
+              > "months/$FIELD.json"
+          done
+
+          # Oversikt over hvilke måneder som finnes
+          if [ ${#FIELDS[@]} -gt 0 ]; then
+            printf '%s\n' "${FIELDS[@]}" | jq -R . | jq -sc '{months: .}' > months/index.json
+          else
+            echo '{"months":[]}' > months/index.json
+          fi
+
+      - name: Lagre filene i repoet
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add months
+          if git diff --cached --quiet; then
+            echo "Ingen endringer"
+          else
+            git commit -m "Oppdater månedsarkiv"
+            git push
+          fi
+
+      - name: Publiser siden på nytt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run export.yml --ref main
