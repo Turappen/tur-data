@@ -214,8 +214,8 @@ async function fetchList(file) {
     cache[file] = { data };
     if (file === 'monthlist.json') document.getElementById('tab-month').textContent = splitField(data.month).name || 'Denne måneden';
     if (file === 'toplist.json') {
-      const y = new Date(data.generatedAt).getFullYear();
-      if (!isNaN(y)) document.getElementById('tab-year').textContent = String(y);
+      const y = data.year || new Date(data.generatedAt).getFullYear();
+      if (y && !Number.isNaN(Number(y))) document.getElementById('tab-year').textContent = String(y);
     }
   } catch {
     cache[file] = { error: true };
