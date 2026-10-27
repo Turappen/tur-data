@@ -33,15 +33,33 @@
     font-weight: 700; letter-spacing: -0.025em; line-height: 1.05;
   }
 
-  .tabs { display: flex; gap: 28px; margin: 0 0 24px; border-bottom: 1px solid var(--line); }
+  .tabs { display: flex; gap: 28px; margin: 0 0 20px; border-bottom: 1px solid var(--line); }
   .tab {
     font: inherit; font-size: 1rem; font-weight: 500; color: var(--muted);
     background: none; border: 0; padding: 0 0 12px; margin-bottom: -1px; cursor: pointer;
-    border-bottom: 2px solid transparent;
+    border-bottom: 2px solid transparent; white-space: nowrap;
   }
   .tab:hover { color: var(--ink); }
   .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
   .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 2px; }
+  .tab[hidden] { display: none; }
+
+  .controls { display: grid; gap: 12px; }
+  .select-box { position: relative; }
+  .select-box[hidden] { display: none; }
+  .select-box svg {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; color: #6B6B6B; pointer-events: none;
+  }
+  .month-select {
+    width: 100%; font: inherit; font-size: 1rem; font-weight: 500; color: var(--ink);
+    padding: 13px 42px 13px 14px;
+    background: #FFFFFF; border: 1px solid #D6D6D6; border-radius: 10px;
+    -webkit-appearance: none; appearance: none; cursor: pointer;
+  }
+  .month-select:hover { border-color: #BDBDBD; }
+  .month-select:focus { outline: none; border-color: var(--ink); }
+  .month-select:focus-visible { box-shadow: 0 0 0 3px #DCE7DF; }
 
   .search-box { position: relative; }
   .search-box svg {
@@ -83,36 +101,58 @@
   <h1>Toppliste</h1>
 
   <div class="tabs" role="tablist" aria-label="Velg periode">
-    <button class="tab" role="tab" id="tab-year" data-list="year" aria-selected="true">2026</button>
-    <button class="tab" role="tab" id="tab-month" data-list="month" aria-selected="false">Denne måneden</button>
+    <button class="tab" role="tab" id="tab-year" data-view="year" aria-selected="true">2026</button>
+    <button class="tab" role="tab" id="tab-month" data-view="month" aria-selected="false">Denne måneden</button>
+    <button class="tab" role="tab" id="tab-archive" data-view="archive" aria-selected="false" hidden>Tidligere måneder</button>
   </div>
 
-  <div class="search-box">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input class="search" id="search" type="search" placeholder="Søk etter navn" aria-label="Søk etter navn" autocomplete="off">
+  <div class="controls">
+    <div class="select-box" id="select-box" hidden>
+      <select class="month-select" id="month-select" aria-label="Velg måned"></select>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="search" id="search" type="search" placeholder="Søk etter navn" aria-label="Søk etter navn" autocomplete="off">
+    </div>
   </div>
 
   <ol id="list" role="tabpanel"></ol>
-  <footer>Oppdateres hvert kvarter mellom kl. 09 og 24.</footer>
+  <footer id="footer"></footer>
 </main>
 
 <script>
 const listEl = document.getElementById('list');
 const searchEl = document.getElementById('search');
 const updatedEl = document.getElementById('updated');
+const footerEl = document.getElementById('footer');
+const selectBox = document.getElementById('select-box');
+const selectEl = document.getElementById('month-select');
+const archiveTab = document.getElementById('tab-archive');
 const tabs = [...document.querySelectorAll('.tab')];
 const fmt = new Intl.NumberFormat('nb-NO');
 
-const sources = {
-  year:  { file: 'toplist.json',   data: null, error: false },
-  month: { file: 'monthlist.json', data: null, error: false }
-};
-let current = 'year';
-try { if (localStorage.getItem('tab') === 'month') current = 'month'; } catch {}
+// Én post per liste, nøkkelen er filnavnet
+const cache = {};   // fil -> { data, error, loading }
+let view = 'year';
+let archiveField = null;
 
-function prepare(data) {
-  const entries = (data.entries || []).map(e => ({ ...e, name: String(e.name ?? '').trim() || 'Uten navn' }));
-  return { ...data, entries };
+try {
+  const saved = localStorage.getItem('view');
+  if (saved === 'month' || saved === 'archive') view = saved;
+  archiveField = localStorage.getItem('archiveMonth');
+} catch {}
+
+function fileFor(v) {
+  if (v === 'year') return 'toplist.json';
+  if (v === 'month') return 'monthlist.json';
+  return archiveField ? `months/${archiveField}.json` : null;
+}
+
+// "September2026" → { name: "September", year: "2026" }
+function splitField(field) {
+  const m = String(field || '').match(/^(\D+)(\d{4})$/);
+  return m ? { name: m[1], year: m[2] } : { name: String(field || ''), year: '' };
 }
 
 function updatedText(iso) {
@@ -122,14 +162,8 @@ function updatedText(iso) {
   const time = d.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
   const day = d.toDateString() === now.toDateString()
     ? 'i dag'
-    : d.toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+    : d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' });
   return `Oppdatert ${day} kl. ${time}`;
-}
-
-// "Oktober2026" → "Oktober"
-function monthLabel(field) {
-  const m = String(field || '').match(/^(\D+)(\d{4})$/);
-  return m ? m[1] : 'Denne måneden';
 }
 
 function setName(el, name, q) {
@@ -141,34 +175,62 @@ function setName(el, name, q) {
 }
 
 function message(text) {
-  listEl.replaceChildren();
   const li = document.createElement('li');
   li.className = 'msg';
   li.textContent = text;
-  listEl.append(li);
+  listEl.replaceChildren(li);
+}
+
+async function fetchList(file) {
+  if (cache[file]) return;
+  cache[file] = { loading: true };
+  try {
+    const res = await fetch(file, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    data.entries = (data.entries || []).map(e => ({ ...e, name: String(e.name ?? '').trim() || 'Uten navn' }));
+    cache[file] = { data };
+    if (file === 'monthlist.json') document.getElementById('tab-month').textContent = splitField(data.month).name || 'Denne måneden';
+    if (file === 'toplist.json') {
+      const y = new Date(data.generatedAt).getFullYear();
+      if (!isNaN(y)) document.getElementById('tab-year').textContent = String(y);
+    }
+  } catch {
+    cache[file] = { error: true };
+  }
+  if (fileFor(view) === file) render();
 }
 
 function render() {
-  tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.list === current)));
-  listEl.setAttribute('aria-labelledby', 'tab-' + current);
+  tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.view === view)));
+  listEl.setAttribute('aria-labelledby', 'tab-' + view);
+  selectBox.hidden = view !== 'archive';
+  footerEl.textContent = view === 'archive'
+    ? 'Sluttresultat for valgt måned.'
+    : 'Oppdateres hvert kvarter mellom kl. 09 og 24.';
 
-  const src = sources[current];
-  if (src.error) { updatedEl.textContent = 'Kunne ikke hente listen'; message('Listen kunne ikke lastes. Last inn siden på nytt om litt.'); return; }
-  if (!src.data) { updatedEl.textContent = 'Henter liste …'; message('Henter liste …'); return; }
+  const file = fileFor(view);
+  if (!file) { updatedEl.textContent = ''; message('Ingen tidligere måneder er lagret ennå.'); return; }
 
-  updatedEl.textContent = updatedText(src.data.generatedAt);
-  const all = src.data.entries;
+  const entry = cache[file];
+  if (!entry || entry.loading) { updatedEl.textContent = 'Henter liste …'; message('Henter liste …'); fetchList(file); return; }
+  if (entry.error) { updatedEl.textContent = 'Kunne ikke hente listen'; message('Listen kunne ikke lastes. Last inn siden på nytt om litt.'); return; }
+
+  const data = entry.data;
+  updatedEl.textContent = view === 'archive'
+    ? `${splitField(data.month).name} ${splitField(data.month).year}`
+    : updatedText(data.generatedAt);
+
   const q = searchEl.value.trim().toLowerCase();
-  const rows = q ? all.filter(e => e.name.toLowerCase().includes(q)) : all;
+  const rows = q ? data.entries.filter(e => e.name.toLowerCase().includes(q)) : data.entries;
 
   if (!rows.length) {
     if (q) message(`Ingen navn inneholder «${searchEl.value.trim()}».`);
-    else if (current === 'month') message('Ingen har fått poeng denne måneden ennå.');
-    else message('Listen er tom.');
+    else if (view === 'year') message('Listen er tom.');
+    else message('Ingen fikk poeng denne måneden.');
     return;
   }
 
-  listEl.replaceChildren();
   const frag = document.createDocumentFragment();
   for (const e of rows) {
     const li = document.createElement('li');
@@ -179,41 +241,58 @@ function render() {
     li.append(r, n, s);
     frag.append(li);
   }
-  listEl.append(frag);
+  listEl.replaceChildren(frag);
 }
 
-async function load(key) {
-  const src = sources[key];
+async function loadArchiveIndex() {
   try {
-    const res = await fetch(src.file, { cache: 'no-cache' });
+    const res = await fetch('months/index.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error(res.status);
-    src.data = prepare(await res.json());
-    if (key === 'month') document.getElementById('tab-month').textContent = monthLabel(src.data.month);
-    if (key === 'year') {
-      const y = new Date(src.data.generatedAt).getFullYear();
-      if (!isNaN(y)) document.getElementById('tab-year').textContent = String(y);
+    const months = ((await res.json()).months || []).slice().reverse();   // nyeste først
+    if (!months.length) throw new Error('tom');
+    for (const f of months) {
+      const { name, year } = splitField(f);
+      const opt = document.createElement('option');
+      opt.value = f;
+      opt.textContent = `${name} ${year}`.trim();
+      selectEl.append(opt);
     }
+    if (!months.includes(archiveField)) archiveField = months[0];
+    selectEl.value = archiveField;
+    archiveTab.hidden = false;
   } catch {
-    src.error = true;
+    archiveField = null;
+    archiveTab.hidden = true;
+    if (view === 'archive') view = 'year';
   }
-  if (key === current) render();
+  render();
 }
 
-tabs.forEach(t => t.addEventListener('click', () => {
-  current = t.dataset.list;
-  try { localStorage.setItem('tab', current); } catch {}
+function choose(v) {
+  view = v;
+  try { localStorage.setItem('view', v); } catch {}
   render();
-}));
-tabs.forEach((t, i) => t.addEventListener('keydown', e => {
+}
+
+tabs.forEach(t => t.addEventListener('click', () => choose(t.dataset.view)));
+tabs.forEach(t => t.addEventListener('keydown', e => {
   if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-  const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+  const visible = tabs.filter(x => !x.hidden);
+  const i = visible.indexOf(t);
+  const next = visible[(i + (e.key === 'ArrowRight' ? 1 : visible.length - 1)) % visible.length];
   next.focus(); next.click();
 }));
+selectEl.addEventListener('change', () => {
+  archiveField = selectEl.value;
+  try { localStorage.setItem('archiveMonth', archiveField); } catch {}
+  render();
+});
 searchEl.addEventListener('input', render);
 
 render();
-load('year');
-load('month');
+fetchList('toplist.json');
+fetchList('monthlist.json');
+loadArchiveIndex();
 </script>
 </body>
 </html>
