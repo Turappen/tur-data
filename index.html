@@ -229,7 +229,7 @@ function render() {
   selectBox.hidden = view !== 'archive';
   footerEl.textContent = view === 'archive'
     ? 'Sluttresultat for valgt måned.'
-    : 'Oppdateres hver halvtime mellom kl. 09 og 24.';
+    : 'Oppdateres jevnlig mellom kl. 09 og 24.';
 
   const file = fileFor(view);
   if (!file) { updatedEl.textContent = ''; message('Ingen tidligere måneder er lagret ennå.'); return; }
