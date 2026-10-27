@@ -33,7 +33,11 @@
     font-weight: 700; letter-spacing: -0.025em; line-height: 1.05;
   }
 
-  .tabs { display: flex; gap: 28px; margin: 0 0 20px; border-bottom: 1px solid var(--line); }
+  .tabs {
+    display: flex; gap: 24px; margin: 0 0 20px; border-bottom: 1px solid var(--line);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
   .tab {
     font: inherit; font-size: 1rem; font-weight: 500; color: var(--muted);
     background: none; border: 0; padding: 0 0 12px; margin-bottom: -1px; cursor: pointer;
@@ -89,6 +93,9 @@
   li.top .rank { color: var(--accent); font-weight: 700; }
   li.top .name, li.top .score { font-weight: 700; }
   li.top { padding: 18px 0; font-size: 1.15rem; }
+  li.visit { display: block; padding: 14px 0; }
+  .line1 { display: block; font-weight: 500; overflow-wrap: anywhere; }
+  .line2 { display: block; margin-top: 3px; font-size: 0.9rem; color: var(--muted); overflow-wrap: anywhere; }
   mark { background: #EEF3EF; color: inherit; }
 
   .msg { display: block; padding: 40px 0; text-align: center; color: var(--muted); border: 0; }
@@ -103,7 +110,8 @@
   <div class="tabs" role="tablist" aria-label="Velg periode">
     <button class="tab" role="tab" id="tab-year" data-view="year" aria-selected="true">2026</button>
     <button class="tab" role="tab" id="tab-month" data-view="month" aria-selected="false">Denne måneden</button>
-    <button class="tab" role="tab" id="tab-archive" data-view="archive" aria-selected="false" hidden>Tidligere måneder</button>
+    <button class="tab" role="tab" id="tab-archive" data-view="archive" aria-selected="false" hidden>Tidligere</button>
+    <button class="tab" role="tab" id="tab-visits" data-view="visits" aria-selected="false">Dagens besøk</button>
   </div>
 
   <div class="controls">
@@ -139,13 +147,14 @@ let archiveField = null;
 
 try {
   const saved = localStorage.getItem('view');
-  if (saved === 'month' || saved === 'archive') view = saved;
+  if (saved === 'month' || saved === 'archive' || saved === 'visits') view = saved;
   archiveField = localStorage.getItem('archiveMonth');
 } catch {}
 
 function fileFor(v) {
   if (v === 'year') return 'toplist.json';
   if (v === 'month') return 'monthlist.json';
+  if (v === 'visits') return 'visits.json';
   return archiveField ? `months/${archiveField}.json` : null;
 }
 
@@ -164,6 +173,13 @@ function updatedText(iso) {
     ? 'i dag'
     : d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' });
   return `Oppdatert ${day} kl. ${time}`;
+}
+
+// Bare dato, i norsk tid: 27.10.2026
+function visitDay(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('nb-NO', { timeZone: 'Europe/Oslo', day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function setName(el, name, q) {
@@ -188,11 +204,21 @@ async function fetchList(file) {
     const res = await fetch(file, { cache: 'no-cache' });
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-    data.entries = (data.entries || []).map(e => {
-      const name = String(e.name ?? '').trim() || 'Uten navn';
-      const kommune = String(e.kommune ?? '').trim();
-      return { ...e, label: kommune ? `${name}, ${kommune}` : name };
-    });
+    if (file === 'visits.json') {
+      data.entries = (data.visits || []).map(v => {
+        const place = [v.ControlDescription, v.Kommune, v.Fylke]
+          .map(x => String(x ?? '').trim()).filter(Boolean).join(', ') || 'Ukjent kontrollpunkt';
+        const user = String(v.visitUser ?? '').trim() || 'Ukjent bruker';
+        const line2 = `${user} - ${visitDay(v.visitDate)}`.replace(/ - $/, '');
+        return { line1: place, line2, label: `${place} ${line2}` };
+      });
+    } else {
+      data.entries = (data.entries || []).map(e => {
+        const name = String(e.name ?? '').trim() || 'Uten navn';
+        const kommune = String(e.kommune ?? '').trim();
+        return { ...e, label: kommune ? `${name}, ${kommune}` : name };
+      });
+    }
     cache[file] = { data };
     if (file === 'monthlist.json') document.getElementById('tab-month').textContent = splitField(data.month).name || 'Denne måneden';
     if (file === 'toplist.json') {
@@ -229,13 +255,27 @@ function render() {
   const rows = q ? data.entries.filter(e => e.label.toLowerCase().includes(q)) : data.entries;
 
   if (!rows.length) {
-    if (q) message(`Ingen navn eller kommuner inneholder «${searchEl.value.trim()}».`);
+    if (q) message(view === 'visits'
+      ? `Ingen besøk passer med «${searchEl.value.trim()}».`
+      : `Ingen navn eller kommuner inneholder «${searchEl.value.trim()}».`);
     else if (view === 'year') message('Listen er tom.');
+    else if (view === 'visits') message('Ingen besøk er registrert i dag ennå.');
     else message('Ingen fikk poeng denne måneden.');
     return;
   }
 
   const frag = document.createDocumentFragment();
+  if (view === 'visits') {
+    for (const v of rows) {
+      const li = document.createElement('li'); li.className = 'visit';
+      const a = document.createElement('span'); a.className = 'line1'; setName(a, v.line1, q);
+      const b = document.createElement('span'); b.className = 'line2'; setName(b, v.line2, q);
+      li.append(a, b);
+      frag.append(li);
+    }
+    listEl.replaceChildren(frag);
+    return;
+  }
   for (const e of rows) {
     const li = document.createElement('li');
     if (e.rank <= 3) li.className = 'top';
