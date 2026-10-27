@@ -2,7 +2,7 @@ name: Eksporter data fra Back4App
 
 on:
   schedule:
-    - cron: '20,50 9-23 * * *'   # xx:01 og xx:31 fra kl. 09 til 23
+    - cron: '13,43 9-23 * * *'   # xx:01 og xx:31 fra kl. 09 til 23
       timezone: 'Europe/Oslo'
   workflow_dispatch:
 
