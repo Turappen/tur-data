@@ -29,6 +29,7 @@ jobs:
         run: |
           mkdir -p public
           cp index.html public/
+          if [ -d months ]; then cp -r months public/; fi
           curl -sf -G "https://parseapi.back4app.com/users" \
             -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
             -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
