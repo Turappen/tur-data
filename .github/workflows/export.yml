@@ -30,21 +30,27 @@ jobs:
           mkdir -p public
           cp index.html public/
           if [ -d months ]; then cp -r months public/; fi
+
+          YEAR=$(TZ=Europe/Oslo date +%Y)
+          FIELD="Points$YEAR"
+          echo "Henter feltet $FIELD"
+
           curl -sf -G "https://parseapi.back4app.com/users" \
             -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
             -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
-            --data-urlencode 'where={"Points2026":{"$exists":true}}' \
-            --data-urlencode 'order=-Points2026' \
+            --data-urlencode "where={\"$FIELD\":{\"\$exists\":true}}" \
+            --data-urlencode "order=-$FIELD" \
             --data-urlencode 'limit=500' \
-            --data-urlencode 'keys=username,kommune,Points2026' \
-            | jq -c '
+            --data-urlencode "keys=username,kommune,$FIELD" \
+            | jq -c --arg f "$FIELD" --arg y "$YEAR" '
                 .results as $r
                 | {
+                    year: $y,
                     generatedAt: (now | todateiso8601),
                     entries: [
-                      $r[] | .Points2026 as $p
+                      $r[] | .[$f] as $p
                       | {
-                          rank: ([$r[] | select(.Points2026 > $p)] | length + 1),
+                          rank: ([$r[] | select(.[$f] > $p)] | length + 1),
                           name: (.username | gsub("^\\s+|\\s+$"; "")),
                           kommune: ((.kommune // "") | tostring | gsub("^\\s+|\\s+$"; "")),
                           points: $p
