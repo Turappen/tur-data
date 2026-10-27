@@ -113,7 +113,7 @@
     </div>
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input class="search" id="search" type="search" placeholder="Søk etter navn" aria-label="Søk etter navn" autocomplete="off">
+      <input class="search" id="search" type="search" placeholder="Søk etter navn eller kommune" aria-label="Søk etter navn eller kommune" autocomplete="off">
     </div>
   </div>
 
@@ -188,7 +188,11 @@ async function fetchList(file) {
     const res = await fetch(file, { cache: 'no-cache' });
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-    data.entries = (data.entries || []).map(e => ({ ...e, name: String(e.name ?? '').trim() || 'Uten navn' }));
+    data.entries = (data.entries || []).map(e => {
+      const name = String(e.name ?? '').trim() || 'Uten navn';
+      const kommune = String(e.kommune ?? '').trim();
+      return { ...e, label: kommune ? `${name}, ${kommune}` : name };
+    });
     cache[file] = { data };
     if (file === 'monthlist.json') document.getElementById('tab-month').textContent = splitField(data.month).name || 'Denne måneden';
     if (file === 'toplist.json') {
@@ -207,7 +211,7 @@ function render() {
   selectBox.hidden = view !== 'archive';
   footerEl.textContent = view === 'archive'
     ? 'Sluttresultat for valgt måned.'
-    : 'Oppdateres hvert kvarter mellom kl. 09 og 24.';
+    : 'Oppdateres hver halvtime mellom kl. 09 og 24.';
 
   const file = fileFor(view);
   if (!file) { updatedEl.textContent = ''; message('Ingen tidligere måneder er lagret ennå.'); return; }
@@ -222,10 +226,10 @@ function render() {
     : updatedText(data.generatedAt);
 
   const q = searchEl.value.trim().toLowerCase();
-  const rows = q ? data.entries.filter(e => e.name.toLowerCase().includes(q)) : data.entries;
+  const rows = q ? data.entries.filter(e => e.label.toLowerCase().includes(q)) : data.entries;
 
   if (!rows.length) {
-    if (q) message(`Ingen navn inneholder «${searchEl.value.trim()}».`);
+    if (q) message(`Ingen navn eller kommuner inneholder «${searchEl.value.trim()}».`);
     else if (view === 'year') message('Listen er tom.');
     else message('Ingen fikk poeng denne måneden.');
     return;
@@ -236,7 +240,7 @@ function render() {
     const li = document.createElement('li');
     if (e.rank <= 3) li.className = 'top';
     const r = document.createElement('span'); r.className = 'rank'; r.textContent = e.rank;
-    const n = document.createElement('span'); n.className = 'name'; setName(n, e.name, q);
+    const n = document.createElement('span'); n.className = 'name'; setName(n, e.label, q);
     const s = document.createElement('span'); s.className = 'score'; s.textContent = fmt.format(e.points);
     li.append(r, n, s);
     frag.append(li);
