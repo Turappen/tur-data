@@ -7,6 +7,10 @@ permissions:
   contents: write      # for å lagre filene i repoet
   actions: write       # for å starte publiseringen etterpå
 
+concurrency:
+  group: archive       # unngår at to arkivjobber lagrer samtidig
+  cancel-in-progress: false
+
 jobs:
   archive:
     runs-on: ubuntu-latest
@@ -21,11 +25,9 @@ jobs:
           CUR=$(TZ=Europe/Oslo date +%-m)
           YEAR=$(TZ=Europe/Oslo date +%Y)
           mkdir -p months
-          FIELDS=()
 
           for ((i=1; i<CUR; i++)); do
             FIELD="${MONTHS[$((i-1))]}${YEAR}"
-            FIELDS+=("$FIELD")
             echo "Henter $FIELD"
 
             curl -sf -G "https://parseapi.back4app.com/users" \
@@ -34,7 +36,7 @@ jobs:
               --data-urlencode "where={\"$FIELD\":{\"\$gt\":0}}" \
               --data-urlencode "order=-$FIELD" \
               --data-urlencode 'limit=200' \
-              --data-urlencode "keys=username,$FIELD" \
+              --data-urlencode "keys=username,kommune,$FIELD" \
               | jq -c --arg f "$FIELD" '
                   .results as $r
                   | {
@@ -45,6 +47,7 @@ jobs:
                         | {
                             rank: ([$r[] | select(.[$f] > $p)] | length + 1),
                             name: (.username | gsub("^\\s+|\\s+$"; "")),
+                            kommune: ((.kommune // "") | tostring | gsub("^\\s+|\\s+$"; "")),
                             points: $p
                           }
                       ]
@@ -52,12 +55,23 @@ jobs:
               > "months/$FIELD.json"
           done
 
-          # Oversikt over hvilke måneder som finnes
-          if [ ${#FIELDS[@]} -gt 0 ]; then
-            printf '%s\n' "${FIELDS[@]}" | jq -R . | jq -sc '{months: .}' > months/index.json
-          else
-            echo '{"months":[]}' > months/index.json
-          fi
+      - name: Oppdater oversikten over måneder
+        shell: bash
+        run: |
+          set -euo pipefail
+          MONTHS=(Januar Februar Mars April Mai Juni Juli August September Oktober November Desember)
+          # Lister alle månedsfiler som finnes (alle år), sortert etter år og måned
+          for f in months/*.json; do
+            NAME=$(basename "$f" .json)
+            [ "$NAME" = "index" ] && continue
+            [[ "$NAME" =~ ^([^0-9]+)([0-9]{4})$ ]] || continue
+            for i in "${!MONTHS[@]}"; do
+              if [ "${MONTHS[$i]}" = "${BASH_REMATCH[1]}" ]; then
+                printf '%s %02d %s\n' "${BASH_REMATCH[2]}" "$((i+1))" "$NAME"
+              fi
+            done
+          done | sort | awk '{print $3}' | jq -R . | jq -sc '{months: .}' > months/index.json
+          cat months/index.json
 
       - name: Lagre filene i repoet
         shell: bash
@@ -69,6 +83,7 @@ jobs:
             echo "Ingen endringer"
           else
             git commit -m "Oppdater månedsarkiv"
+            git pull --rebase
             git push
           fi
 
