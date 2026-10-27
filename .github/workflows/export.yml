@@ -86,6 +86,58 @@ jobs:
                   }' \
             > public/monthlist.json
 
+      - name: Hent dagens besøk
+        shell: bash
+        run: |
+          set -euo pipefail
+          YEAR=$(TZ=Europe/Oslo date +%Y)
+          TODAY=$(TZ=Europe/Oslo date +%F)
+          # Midnatt til midnatt norsk tid, oppgitt i UTC
+          START=$(date -u -d "TZ=\"Europe/Oslo\" $TODAY 00:00" +%Y-%m-%dT%H:%M:%S.000Z)
+          END=$(date -u -d "TZ=\"Europe/Oslo\" $TODAY 00:00 +1 day" +%Y-%m-%dT%H:%M:%S.000Z)
+          echo "Henter Visits$YEAR for $TODAY ($START – $END)"
+
+          WHERE=$(jq -cn --arg s "$START" --arg e "$END" '{
+            reservation: false,
+            visitDate: { "$gte": {"__type":"Date","iso":$s}, "$lt": {"__type":"Date","iso":$e} }
+          }')
+
+          # Henter 1000 om gangen til alt er med
+          mkdir -p visits_pages
+          SKIP=0; PAGE=0
+          while : ; do
+            PAGE=$((PAGE+1))
+            curl -sf -G "https://parseapi.back4app.com/classes/Visits$YEAR" \
+              -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+              -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+              --data-urlencode "where=$WHERE" \
+              --data-urlencode 'include=visitControl' \
+              --data-urlencode 'keys=visitUser,visitDate,visitControl.ControlDescription,visitControl.Kommune,visitControl.Fylke' \
+              --data-urlencode 'order=visitDate' \
+              --data-urlencode 'limit=1000' \
+              --data-urlencode "skip=$SKIP" \
+              > "visits_pages/$PAGE.json"
+            N=$(jq '.results | length' "visits_pages/$PAGE.json")
+            [ "$N" -lt 1000 ] && break
+            SKIP=$((SKIP+1000))
+          done
+
+          jq -sc --arg d "$TODAY" '
+            [ .[].results[] ] | sort_by(.visitDate.iso? // .visitDate) as $v
+            | {
+                date: $d,
+                generatedAt: (now | todateiso8601),
+                count: ($v | length),
+                visits: [ $v[] | {
+                  visitUser: (if (.visitUser | type) == "object" then .visitUser.objectId else .visitUser end),
+                  visitDate: (if (.visitDate | type) == "object" then .visitDate.iso else .visitDate end),
+                  ControlDescription: (.visitControl.ControlDescription // null),
+                  Kommune: (.visitControl.Kommune // null),
+                  Fylke: (.visitControl.Fylke // null)
+                } ]
+              }' visits_pages/*.json > public/visits.json
+          echo "Fant $(jq .count public/visits.json) besøk"
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: public
