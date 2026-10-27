@@ -175,13 +175,6 @@ function updatedText(iso) {
   return `Oppdatert ${day} kl. ${time}`;
 }
 
-// Bare dato, i norsk tid: 27.10.2026
-function visitDay(iso) {
-  const d = new Date(iso);
-  if (isNaN(d)) return '';
-  return d.toLocaleDateString('nb-NO', { timeZone: 'Europe/Oslo', day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
 function setName(el, name, q) {
   const i = q ? name.toLowerCase().indexOf(q) : -1;
   if (i < 0) { el.textContent = name; return; }
@@ -209,8 +202,7 @@ async function fetchList(file) {
         const place = [v.ControlDescription, v.Kommune, v.Fylke]
           .map(x => String(x ?? '').trim()).filter(Boolean).join(', ') || 'Ukjent kontrollpunkt';
         const user = String(v.visitUser ?? '').trim() || 'Ukjent bruker';
-        const line2 = `${user} - ${visitDay(v.visitDate)}`.replace(/ - $/, '');
-        return { line1: place, line2, label: `${place} ${line2}` };
+        return { line1: place, line2: user, label: `${place} ${user}` };
       });
     } else {
       data.entries = (data.entries || []).map(e => {
