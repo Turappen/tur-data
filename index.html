@@ -34,7 +34,7 @@
   }
 
   .tabs {
-    display: flex; gap: 24px; margin: 0 0 20px; border-bottom: 1px solid var(--line);
+    display: flex; gap: 22px; margin: 0 0 20px; border-bottom: 1px solid var(--line);
     overflow-x: auto; scrollbar-width: none;
   }
   .tabs::-webkit-scrollbar { display: none; }
@@ -111,12 +111,17 @@
     <button class="tab" role="tab" id="tab-year" data-view="year" aria-selected="true">2026</button>
     <button class="tab" role="tab" id="tab-month" data-view="month" aria-selected="false">Denne måneden</button>
     <button class="tab" role="tab" id="tab-archive" data-view="archive" aria-selected="false" hidden>Tidligere</button>
-    <button class="tab" role="tab" id="tab-visits" data-view="visits" aria-selected="false">Dagens besøk</button>
+    <button class="tab" role="tab" id="tab-fylker" data-view="fylker" aria-selected="false" hidden>Fylker</button>
+    <button class="tab" role="tab" id="tab-visits" data-view="visits" aria-selected="false">Besøk</button>
   </div>
 
   <div class="controls">
     <div class="select-box" id="select-box" hidden>
       <select class="month-select" id="month-select" aria-label="Velg måned"></select>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <div class="select-box" id="fylke-box" hidden>
+      <select class="month-select" id="fylke-select" aria-label="Velg fylke"></select>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </div>
     <div class="search-box">
@@ -137,6 +142,10 @@ const footerEl = document.getElementById('footer');
 const selectBox = document.getElementById('select-box');
 const selectEl = document.getElementById('month-select');
 const archiveTab = document.getElementById('tab-archive');
+const fylkeBox = document.getElementById('fylke-box');
+const fylkeSelect = document.getElementById('fylke-select');
+const fylkeTab = document.getElementById('tab-fylker');
+const FYLKE_FILE = 'fylker/fylker.json';
 const tabs = [...document.querySelectorAll('.tab')];
 const fmt = new Intl.NumberFormat('nb-NO');
 
@@ -144,17 +153,28 @@ const fmt = new Intl.NumberFormat('nb-NO');
 const cache = {};   // fil -> { data, error, loading }
 let view = 'year';
 let archiveField = null;
+let fylke = null;
 
 try {
   const saved = localStorage.getItem('view');
-  if (saved === 'month' || saved === 'archive' || saved === 'visits') view = saved;
+  if (['month', 'archive', 'visits', 'fylker'].includes(saved)) view = saved;
   archiveField = localStorage.getItem('archiveMonth');
+  fylke = localStorage.getItem('fylke');
 } catch {}
+
+function prepareEntries(list) {
+  return (list || []).map(e => {
+    const name = String(e.name ?? '').trim() || 'Uten navn';
+    const kommune = String(e.kommune ?? '').trim();
+    return { ...e, label: kommune ? `${name}, ${kommune}` : name };
+  });
+}
 
 function fileFor(v) {
   if (v === 'year') return 'toplist.json';
   if (v === 'month') return 'monthlist.json';
   if (v === 'visits') return 'visits.json';
+  if (v === 'fylker') return FYLKE_FILE;
   return archiveField ? `months/${archiveField}.json` : null;
 }
 
@@ -190,9 +210,14 @@ function message(text) {
   listEl.replaceChildren(li);
 }
 
-async function fetchList(file) {
-  if (cache[file]) return;
-  cache[file] = { loading: true };
+function fetchList(file) {
+  if (cache[file]) return cache[file].promise;
+  const promise = loadFile(file);
+  cache[file] = { loading: true, promise };
+  return promise;
+}
+
+async function loadFile(file) {
   try {
     const res = await fetch(file, { cache: 'no-cache' });
     if (!res.ok) throw new Error(res.status);
@@ -204,12 +229,17 @@ async function fetchList(file) {
         const user = String(v.visitUser ?? '').trim() || 'Ukjent bruker';
         return { line1: place, line2: user, label: `${place} ${user}` };
       });
+    } else if (file === FYLKE_FILE) {
+      data.byName = {};
+      data.names = [];
+      for (const f of data.fylker || []) {
+        const n = String(f.fylke ?? '').trim();
+        if (!n) continue;
+        data.names.push(n);
+        data.byName[n] = prepareEntries(f.entries);
+      }
     } else {
-      data.entries = (data.entries || []).map(e => {
-        const name = String(e.name ?? '').trim() || 'Uten navn';
-        const kommune = String(e.kommune ?? '').trim();
-        return { ...e, label: kommune ? `${name}, ${kommune}` : name };
-      });
+      data.entries = prepareEntries(data.entries);
     }
     cache[file] = { data };
     if (file === 'monthlist.json') document.getElementById('tab-month').textContent = splitField(data.month).name || 'Denne måneden';
@@ -227,9 +257,12 @@ function render() {
   tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.view === view)));
   listEl.setAttribute('aria-labelledby', 'tab-' + view);
   selectBox.hidden = view !== 'archive';
+  fylkeBox.hidden = view !== 'fylker';
   footerEl.textContent = view === 'archive'
     ? 'Sluttresultat for valgt måned.'
-    : 'Oppdateres jevnlig mellom kl. 09 og 24.';
+    : view === 'fylker'
+      ? 'Fylkeslistene oppdateres hver natt.'
+      : 'Oppdateres jevnlig mellom kl. 09 og 24.';
 
   const file = fileFor(view);
   if (!file) { updatedEl.textContent = ''; message('Ingen tidligere måneder er lagret ennå.'); return; }
@@ -243,8 +276,9 @@ function render() {
     ? `${splitField(data.month).name} ${splitField(data.month).year}`
     : updatedText(data.generatedAt);
 
+  const all = view === 'fylker' ? (data.byName[fylke] || []) : data.entries;
   const q = searchEl.value.trim().toLowerCase();
-  const rows = q ? data.entries.filter(e => e.label.toLowerCase().includes(q)) : data.entries;
+  const rows = q ? all.filter(e => e.label.toLowerCase().includes(q)) : all;
 
   if (!rows.length) {
     if (q) message(view === 'visits'
@@ -252,6 +286,7 @@ function render() {
       : `Ingen navn eller kommuner inneholder «${searchEl.value.trim()}».`);
     else if (view === 'year') message('Listen er tom.');
     else if (view === 'visits') message('Ingen besøk er registrert i dag ennå.');
+    else if (view === 'fylker') message(`Ingen i ${fylke || 'dette fylket'} har poeng ennå.`);
     else message('Ingen fikk poeng denne måneden.');
     return;
   }
@@ -304,6 +339,28 @@ async function loadArchiveIndex() {
   render();
 }
 
+async function loadFylker() {
+  await fetchList(FYLKE_FILE);
+  const entry = cache[FYLKE_FILE];
+  const names = entry && entry.data ? entry.data.names : [];
+  if (!names.length) {
+    fylkeTab.hidden = true;
+    if (view === 'fylker') view = 'year';
+    render();
+    return;
+  }
+  for (const n of names) {
+    const opt = document.createElement('option');
+    opt.value = n;
+    opt.textContent = n;
+    fylkeSelect.append(opt);
+  }
+  if (!names.includes(fylke)) fylke = names[0];
+  fylkeSelect.value = fylke;
+  fylkeTab.hidden = false;
+  render();
+}
+
 function choose(v) {
   view = v;
   try { localStorage.setItem('view', v); } catch {}
@@ -323,12 +380,18 @@ selectEl.addEventListener('change', () => {
   try { localStorage.setItem('archiveMonth', archiveField); } catch {}
   render();
 });
+fylkeSelect.addEventListener('change', () => {
+  fylke = fylkeSelect.value;
+  try { localStorage.setItem('fylke', fylke); } catch {}
+  render();
+});
 searchEl.addEventListener('input', render);
 
 render();
 fetchList('toplist.json');
 fetchList('monthlist.json');
 loadArchiveIndex();
+loadFylker();
 </script>
 </body>
 </html>
