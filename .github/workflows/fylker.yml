@@ -1,1 +1,110 @@
+name: Lag fylkeslister
 
+on:
+  schedule:
+    - cron: '35 2 * * *'        # hver natt kl. 02:35
+      timezone: 'Europe/Oslo'
+  workflow_dispatch:            # kan også kjøres manuelt
+
+permissions:
+  contents: write               # for å lagre fila i repoet
+  actions: write                # for å starte publiseringen etterpå
+
+concurrency:
+  group: archive                # venter på eventuelle arkivjobber
+  cancel-in-progress: false
+
+env:
+  FYLKE_FIELD: fylke            # kolonnen i brukerklassen som inneholder fylket
+  LIMIT: 200                    # maks antall brukere per fylke
+  FYLKER: |
+    Akershus
+    Aust-Agder
+    Buskerud
+    Finnmark
+    Hedmark
+    Hordaland
+    Møre og Romsdal
+    Nordland
+    Oppland
+    Oslo
+    Rogaland
+    Sogn og Fjordane
+    Telemark
+    Troms
+    Trøndelag
+    Vest-Agder
+    Vestfold
+    Østfold
+
+jobs:
+  fylker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Hent toppliste for hvert fylke
+        shell: bash
+        run: |
+          set -euo pipefail
+          YEAR=$(TZ=Europe/Oslo date +%Y)
+          FIELD="Points$YEAR"
+          echo "Henter feltet $FIELD"
+
+          mapfile -t LIST <<< "$FYLKER"
+          mkdir -p parts fylker
+          N=0
+
+          for FY in "${LIST[@]}"; do
+            [ -z "$FY" ] && continue
+            N=$((N+1))
+            WHERE=$(jq -cn --arg ff "$FYLKE_FIELD" --arg fy "$FY" --arg f "$FIELD" \
+              '{($ff): $fy, ($f): {"$gt": 0}}')
+
+            curl -sf -G "https://parseapi.back4app.com/users" \
+              -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+              -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+              --data-urlencode "where=$WHERE" \
+              --data-urlencode "order=-$FIELD" \
+              --data-urlencode "limit=$LIMIT" \
+              --data-urlencode "keys=username,kommune,$FIELD" \
+              | jq -c --arg f "$FIELD" --arg fy "$FY" '
+                  .results as $r
+                  | {
+                      fylke: $fy,
+                      entries: [
+                        $r[] | .[$f] as $p
+                        | {
+                            rank: ([$r[] | select(.[$f] > $p)] | length + 1),
+                            name: (.username | gsub("^\\s+|\\s+$"; "")),
+                            kommune: ((.kommune // "") | tostring | gsub("^\\s+|\\s+$"; "")),
+                            points: $p
+                          }
+                      ]
+                    }' \
+              > "parts/$(printf '%02d' "$N").json"
+
+            echo "$FY: $(jq '.entries | length' "parts/$(printf '%02d' "$N").json") brukere"
+          done
+
+          jq -sc --arg y "$YEAR" '{year: $y, generatedAt: (now | todateiso8601), fylker: .}' \
+            parts/*.json > fylker/fylker.json
+
+      - name: Lagre fila i repoet
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fylker
+          if git diff --cached --quiet; then
+            echo "Ingen endringer"
+          else
+            git commit -m "Oppdater fylkeslister"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Publiser siden på nytt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run export.yml --ref main
