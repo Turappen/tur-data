@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FYLKE_FIELD: fylke            # kolonnen i brukerklassen som inneholder fylket
+  FYLKE_FIELD: Fylke            # kolonnen i brukerklassen som inneholder fylket
   LIMIT: 200                    # maks antall brukere per fylke
   FYLKER: |
     Akershus
