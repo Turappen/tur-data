@@ -32,6 +32,7 @@ jobs:
           if [ -d months ]; then cp -r months public/; fi
           if [ -d fylker ]; then cp -r fylker public/; fi
           if [ -d alltime ]; then cp -r alltime public/; fi
+          if [ -d poster ]; then cp -r poster public/; fi
 
           YEAR=$(TZ=Europe/Oslo date +%Y)
           FIELD="Points$YEAR"
@@ -40,9 +41,9 @@ jobs:
           curl -sf -G "https://parseapi.back4app.com/users" \
             -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
             -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
-            --data-urlencode "where={\"$FIELD\":{\"\$exists\":true}}" \
+            --data-urlencode "where={\"$FIELD\":{\"\$gte\":50}}" \
             --data-urlencode "order=-$FIELD" \
-            --data-urlencode 'limit=500' \
+            --data-urlencode 'limit=2000' \
             --data-urlencode "keys=username,kommune,$FIELD" \
             | jq -c --arg f "$FIELD" --arg y "$YEAR" '
                 .results as $r

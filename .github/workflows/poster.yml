@@ -1,0 +1,137 @@
+name: Lag liste over mest besøkte poster
+
+on:
+  workflow_dispatch:             # kjøres bare manuelt
+
+permissions:
+  contents: write                # for å lagre fila i repoet
+  actions: write                 # for å starte publiseringen etterpå
+
+concurrency:
+  group: archive                 # venter på andre jobber som lagrer i repoet
+  cancel-in-progress: false
+
+env:
+  TOP: 200                       # antall poster på listen
+
+jobs:
+  poster:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Tell besøk per post
+        shell: bash
+        run: |
+          set -euo pipefail
+          YEAR=$(TZ=Europe/Oslo date +%Y)
+          echo "YEAR=$YEAR" >> "$GITHUB_ENV"
+          echo "Teller besøk i Visits$YEAR"
+
+          # Henter alle besøk (bare pekeren til posten), 1000 om gangen,
+          # og teller opp per side så minnebruken holdes lav
+          mkdir -p counts
+          LAST=""; PAGE=0
+          while : ; do
+            PAGE=$((PAGE+1))
+            WHERE=$(jq -cn --arg last "$LAST" \
+              'if $last == "" then {} else { objectId: { "$gt": $last } } end')
+
+            curl -sf -G "https://parseapi.back4app.com/classes/Visits$YEAR" \
+              -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+              -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+              --data-urlencode "where=$WHERE" \
+              --data-urlencode 'keys=visitControl' \
+              --data-urlencode 'order=objectId' \
+              --data-urlencode 'limit=1000' \
+              > page.json
+
+            N=$(jq '.results | length' page.json)
+            jq -c '[.results[] | .visitControl.objectId // empty]
+                   | group_by(.) | map({key: .[0], value: length}) | from_entries' \
+              page.json > "counts/$(printf '%05d' "$PAGE").json"
+
+            # Husk hvilken klasse pekeren går til (Tur2026, Tur2027 …)
+            if [ ! -f classname.txt ]; then
+              CN=$(jq -r '[.results[] | .visitControl.className // empty][0] // empty' page.json)
+              [ -n "$CN" ] && echo "$CN" > classname.txt
+            fi
+
+            echo "Side $PAGE: $N besøk"
+            [ "$N" -lt 1000 ] && break
+            LAST=$(jq -r '.results[-1].objectId' page.json)
+          done
+
+          jq -sc 'reduce .[] as $p ({}; reduce ($p | to_entries[]) as $e (.; .[$e.key] += $e.value))' \
+            counts/*.json > totals.json
+          jq -c --argjson top "$TOP" 'to_entries | sort_by(-.value) | .[:$top]' totals.json > top.json
+
+          echo "Besøk totalt: $(jq '[.[]] | add // 0' totals.json)"
+          echo "Poster med besøk: $(jq 'length' totals.json)"
+
+      - name: Hent navn, kommune og fylke for postene
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLASS=$(cat classname.txt 2>/dev/null || echo "Tur$YEAR")
+          echo "Henter postdetaljer fra $CLASS"
+
+          # Henter detaljene 100 poster om gangen
+          mkdir -p details
+          I=0
+          jq -c '[.[].key] | _nwise(100)' top.json | while read -r IDS; do
+            I=$((I+1))
+            curl -sf -G "https://parseapi.back4app.com/classes/$CLASS" \
+              -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+              -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+              --data-urlencode "where={\"objectId\":{\"\$in\":$IDS}}" \
+              --data-urlencode 'keys=ControlDescription,Kommune,Fylke' \
+              --data-urlencode 'limit=100' \
+              > "details/$(printf '%03d' "$I").json"
+          done
+
+          mkdir -p poster
+          jq -n --arg y "$YEAR" \
+            --slurpfile top top.json \
+            --slurpfile tot totals.json \
+            --slurpfile d <(cat details/*.json 2>/dev/null || true) '
+            ($d | map(.results[]) | map({key: .objectId, value: .}) | from_entries) as $info
+            | $top[0] as $t
+            | {
+                year: $y,
+                generatedAt: (now | todateiso8601),
+                totalVisits: ($tot[0] | [.[]] | add // 0),
+                totalControls: ($tot[0] | length),
+                entries: [
+                  $t[] | .value as $v | ($info[.key] // {}) as $i
+                  | {
+                      rank: ([$t[] | select(.value > $v)] | length + 1),
+                      ControlDescription: ($i.ControlDescription // null),
+                      Kommune: ($i.Kommune // null),
+                      Fylke: ($i.Fylke // null),
+                      visits: $v
+                    }
+                ]
+              }' > poster/poster.json
+
+          echo "Topp 5:"
+          jq -r '.entries[:5][] | "\(.rank). \(.ControlDescription), \(.Kommune) – \(.visits) besøk"' poster/poster.json
+
+      - name: Lagre fila i repoet
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add poster
+          if git diff --cached --quiet; then
+            echo "Ingen endringer"
+          else
+            git commit -m "Oppdater mest besøkte poster"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Publiser siden på nytt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run export.yml --ref main
