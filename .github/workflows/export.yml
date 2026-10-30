@@ -31,6 +31,7 @@ jobs:
           cp index.html public/
           if [ -d months ]; then cp -r months public/; fi
           if [ -d fylker ]; then cp -r fylker public/; fi
+          if [ -d alltime ]; then cp -r alltime public/; fi
 
           YEAR=$(TZ=Europe/Oslo date +%Y)
           FIELD="Points$YEAR"
