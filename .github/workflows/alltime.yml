@@ -1,0 +1,114 @@
+name: Lag adelskalender (all time)
+
+on:
+  workflow_dispatch:             # kjøres bare manuelt
+
+permissions:
+  contents: write                # for å lagre fila i repoet
+  actions: write                 # for å starte publiseringen etterpå
+
+concurrency:
+  group: archive                 # venter på andre jobber som lagrer i repoet
+  cancel-in-progress: false
+
+env:
+  START_YEAR: 2020               # første år som telles med
+  TOP: 2000                      # antall brukere på adelskalenderen
+
+jobs:
+  alltime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Hent poeng for alle år
+        shell: bash
+        run: |
+          set -euo pipefail
+          END_YEAR=$(TZ=Europe/Oslo date +%Y)   # til og med inneværende år
+          YEARS=$(seq "$START_YEAR" "$END_YEAR" | jq -R 'tonumber' | jq -sc .)
+          KEYS="objectId,username,kommune,$(seq "$START_YEAR" "$END_YEAR" | sed 's/^/Points/' | paste -sd,)"
+          echo "Teller år $START_YEAR–$END_YEAR"
+
+          # Henter alle brukere med poeng i minst ett av årene, 1000 om gangen
+          mkdir -p pages
+          LAST=""; PAGE=0
+          while : ; do
+            PAGE=$((PAGE+1))
+            WHERE=$(jq -cn --argjson y "$YEARS" --arg last "$LAST" '
+              { "$or": [ $y[] | { ("Points\(.)"): { "$gt": 0 } } ] }
+              + (if $last == "" then {} else { objectId: { "$gt": $last } } end)')
+
+            curl -sf -G "https://parseapi.back4app.com/users" \
+              -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+              -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+              --data-urlencode "where=$WHERE" \
+              --data-urlencode "keys=$KEYS" \
+              --data-urlencode 'order=objectId' \
+              --data-urlencode 'limit=1000' \
+              > "pages/$(printf '%04d' "$PAGE").json"
+
+            FILE="pages/$(printf '%04d' "$PAGE").json"
+            N=$(jq '.results | length' "$FILE")
+            echo "Side $PAGE: $N brukere"
+            [ "$N" -lt 1000 ] && break
+            LAST=$(jq -r '.results[-1].objectId' "$FILE")
+          done
+
+          # Summerer poengene per bruker og lager adelskalenderen
+          mkdir -p alltime
+          jq -sc --argjson y "$YEARS" --argjson top "$TOP" '
+            [ .[].results[] ] as $users
+            | [ $users[]
+                | . as $u
+                | {
+                    name: ((.username // "") | tostring | gsub("^\\s+|\\s+$"; "")),
+                    kommune: ((.kommune // "") | tostring | gsub("^\\s+|\\s+$"; "")),
+                    years: (
+                      [ $y[] | tostring as $yy
+                        | { key: $yy,
+                            value: ($u["Points\($yy)"] | if type == "number" and . > 0 then . else 0 end) } ]
+                      | map(select(.value > 0)) | from_entries
+                    )
+                  }
+                | .points = ([.years[]] | add // 0)
+                | select(.points > 0)
+              ]
+            | sort_by(-.points) as $s
+            | $s[:$top] as $t
+            | {
+                fromYear: ($y[0] | tostring),
+                toYear: ($y[-1] | tostring),
+                generatedAt: (now | todateiso8601),
+                totalUsers: ($s | length),
+                entries: [
+                  $t[] | .points as $p
+                  | {
+                      rank: ([$t[] | select(.points > $p)] | length + 1),
+                      name, kommune, points, years
+                    }
+                ]
+              }' pages/*.json > alltime/alltime.json
+
+          echo "Brukere med poeng totalt: $(jq .totalUsers alltime/alltime.json)"
+          echo "Topp 3:"
+          jq -r '.entries[:3][] | "\(.rank). \(.name) – \(.points)"' alltime/alltime.json
+
+      - name: Lagre fila i repoet
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add alltime
+          if git diff --cached --quiet; then
+            echo "Ingen endringer"
+          else
+            git commit -m "Oppdater adelskalender"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Publiser siden på nytt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run export.yml --ref main
