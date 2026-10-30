@@ -79,7 +79,7 @@ jobs:
           # Henter detaljene 100 poster om gangen
           mkdir -p details
           I=0
-          jq -c '[.[].key] | _nwise(100)' top.json | while read -r IDS; do
+          jq -c '[.[].key] as $k | range(0; $k | length; 100) as $i | $k[$i:$i+100]' top.json | while read -r IDS; do
             I=$((I+1))
             curl -sf -G "https://parseapi.back4app.com/classes/$CLASS" \
               -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
