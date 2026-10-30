@@ -38,6 +38,10 @@
     overflow-x: auto; scrollbar-width: none;
   }
   .tabs::-webkit-scrollbar { display: none; }
+  .tabs.more-right { -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); }
+  .tabs.more-left { -webkit-mask-image: linear-gradient(to left, #000 85%, transparent); mask-image: linear-gradient(to left, #000 85%, transparent); }
+  .tabs.more-left.more-right { -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent); mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent); }
+  .sub { display: block; margin-top: 2px; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
   .tab {
     font: inherit; font-size: 1rem; font-weight: 500; color: var(--muted);
     background: none; border: 0; padding: 0 0 12px; margin-bottom: -1px; cursor: pointer;
@@ -112,6 +116,7 @@
     <button class="tab" role="tab" id="tab-month" data-view="month" aria-selected="false">Denne måneden</button>
     <button class="tab" role="tab" id="tab-archive" data-view="archive" aria-selected="false" hidden>Tidligere</button>
     <button class="tab" role="tab" id="tab-fylker" data-view="fylker" aria-selected="false" hidden>Fylker</button>
+    <button class="tab" role="tab" id="tab-alltime" data-view="alltime" aria-selected="false" hidden>Adelskalender</button>
     <button class="tab" role="tab" id="tab-visits" data-view="visits" aria-selected="false">Besøk</button>
   </div>
 
@@ -145,6 +150,8 @@ const archiveTab = document.getElementById('tab-archive');
 const fylkeBox = document.getElementById('fylke-box');
 const fylkeSelect = document.getElementById('fylke-select');
 const fylkeTab = document.getElementById('tab-fylker');
+const alltimeTab = document.getElementById('tab-alltime');
+const ALLTIME_FILE = 'alltime/alltime.json';
 const FYLKE_FILE = 'fylker/fylker.json';
 const tabs = [...document.querySelectorAll('.tab')];
 const fmt = new Intl.NumberFormat('nb-NO');
@@ -157,7 +164,7 @@ let fylke = null;
 
 try {
   const saved = localStorage.getItem('view');
-  if (['month', 'archive', 'visits', 'fylker'].includes(saved)) view = saved;
+  if (['month', 'archive', 'visits', 'fylker', 'alltime'].includes(saved)) view = saved;
   archiveField = localStorage.getItem('archiveMonth');
   fylke = localStorage.getItem('fylke');
 } catch {}
@@ -175,6 +182,7 @@ function fileFor(v) {
   if (v === 'month') return 'monthlist.json';
   if (v === 'visits') return 'visits.json';
   if (v === 'fylker') return FYLKE_FILE;
+  if (v === 'alltime') return ALLTIME_FILE;
   return archiveField ? `months/${archiveField}.json` : null;
 }
 
@@ -255,6 +263,13 @@ async function loadFile(file) {
 
 function render() {
   tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.view === view)));
+  const activeTab = tabs.find(t => t.dataset.view === view);
+  if (activeTab && !activeTab.hidden) {
+    // Ruller bare fanelinjen sidelengs, aldri hele siden
+    const left = activeTab.offsetLeft - tabsEl.offsetLeft;
+    tabsEl.scrollLeft = left - (tabsEl.clientWidth - activeTab.offsetWidth) / 2;   // midtstiller valgt fane
+  }
+  updateTabFade();
   listEl.setAttribute('aria-labelledby', 'tab-' + view);
   selectBox.hidden = view !== 'archive';
   fylkeBox.hidden = view !== 'fylker';
@@ -262,7 +277,9 @@ function render() {
     ? 'Sluttresultat for valgt måned.'
     : view === 'fylker'
       ? 'Fylkeslistene oppdateres hver natt.'
-      : 'Oppdateres jevnlig mellom kl. 09 og 24.';
+      : view === 'alltime'
+        ? alltimeFooter()
+        : 'Oppdateres jevnlig mellom kl. 09 og 24.';
 
   const file = fileFor(view);
   if (!file) { updatedEl.textContent = ''; message('Ingen tidligere måneder er lagret ennå.'); return; }
@@ -287,6 +304,7 @@ function render() {
     else if (view === 'year') message('Listen er tom.');
     else if (view === 'visits') message('Ingen besøk er registrert i dag ennå.');
     else if (view === 'fylker') message(`Ingen i ${fylke || 'dette fylket'} har poeng ennå.`);
+    else if (view === 'alltime') message('Adelskalenderen er tom.');
     else message('Ingen fikk poeng denne måneden.');
     return;
   }
@@ -308,6 +326,12 @@ function render() {
     if (e.rank <= 3) li.className = 'top';
     const r = document.createElement('span'); r.className = 'rank'; r.textContent = e.rank;
     const n = document.createElement('span'); n.className = 'name'; setName(n, e.label, q);
+    if (view === 'alltime' && e.years) {
+      const count = Object.keys(e.years).length;
+      const sub = document.createElement('span'); sub.className = 'sub';
+      sub.textContent = `Poeng i ${count} av ${yearSpan()} år`;
+      n.append(sub);
+    }
     const s = document.createElement('span'); s.className = 'score'; s.textContent = fmt.format(e.points);
     li.append(r, n, s);
     frag.append(li);
@@ -361,6 +385,39 @@ async function loadFylker() {
   render();
 }
 
+function yearSpan() {
+  const d = cache[ALLTIME_FILE] && cache[ALLTIME_FILE].data;
+  if (!d) return '';
+  return Number(d.toYear) - Number(d.fromYear) + 1;
+}
+
+function alltimeFooter() {
+  const d = cache[ALLTIME_FILE] && cache[ALLTIME_FILE].data;
+  if (!d) return '';
+  const total = d.totalUsers ? ` ${fmt.format(d.totalUsers)} brukere har poeng totalt.` : '';
+  return `Summen av alle poeng fra ${d.fromYear} til ${d.toYear}.${total}`;
+}
+
+async function loadAlltime() {
+  await fetchList(ALLTIME_FILE);
+  const entry = cache[ALLTIME_FILE];
+  const ok = entry && entry.data && entry.data.entries.length;
+  alltimeTab.hidden = !ok;
+  if (!ok && view === 'alltime') view = 'year';
+  render();
+}
+
+// Viser en svak toning til høyre når det finnes flere faner utenfor skjermen
+const tabsEl = document.querySelector('.tabs');
+function updateTabFade() {
+  const more = tabsEl.scrollLeft + tabsEl.clientWidth < tabsEl.scrollWidth - 2;
+  const less = tabsEl.scrollLeft > 2;
+  tabsEl.classList.toggle('more-right', more);
+  tabsEl.classList.toggle('more-left', less);
+}
+tabsEl.addEventListener('scroll', updateTabFade, { passive: true });
+window.addEventListener('resize', updateTabFade);
+
 function choose(v) {
   view = v;
   try { localStorage.setItem('view', v); } catch {}
@@ -392,6 +449,7 @@ fetchList('toplist.json');
 fetchList('monthlist.json');
 loadArchiveIndex();
 loadFylker();
+loadAlltime();
 </script>
 </body>
 </html>
