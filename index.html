@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Turlister</title>
+<title>Toppliste</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700&display=swap" rel="stylesheet">
@@ -117,6 +117,7 @@
     <button class="tab" role="tab" id="tab-archive" data-view="archive" aria-selected="false" hidden>Tidligere</button>
     <button class="tab" role="tab" id="tab-fylker" data-view="fylker" aria-selected="false" hidden>Fylker</button>
     <button class="tab" role="tab" id="tab-alltime" data-view="alltime" aria-selected="false" hidden>Adelskalender</button>
+    <button class="tab" role="tab" id="tab-poster" data-view="poster" aria-selected="false" hidden>Poster</button>
     <button class="tab" role="tab" id="tab-visits" data-view="visits" aria-selected="false">Besøk</button>
   </div>
 
@@ -152,6 +153,8 @@ const fylkeSelect = document.getElementById('fylke-select');
 const fylkeTab = document.getElementById('tab-fylker');
 const alltimeTab = document.getElementById('tab-alltime');
 const ALLTIME_FILE = 'alltime/alltime.json';
+const posterTab = document.getElementById('tab-poster');
+const POSTER_FILE = 'poster/poster.json';
 const FYLKE_FILE = 'fylker/fylker.json';
 const tabs = [...document.querySelectorAll('.tab')];
 const fmt = new Intl.NumberFormat('nb-NO');
@@ -164,7 +167,7 @@ let fylke = null;
 
 try {
   const saved = localStorage.getItem('view');
-  if (['month', 'archive', 'visits', 'fylker', 'alltime'].includes(saved)) view = saved;
+  if (['month', 'archive', 'visits', 'fylker', 'alltime', 'poster'].includes(saved)) view = saved;
   archiveField = localStorage.getItem('archiveMonth');
   fylke = localStorage.getItem('fylke');
 } catch {}
@@ -183,6 +186,7 @@ function fileFor(v) {
   if (v === 'visits') return 'visits.json';
   if (v === 'fylker') return FYLKE_FILE;
   if (v === 'alltime') return ALLTIME_FILE;
+  if (v === 'poster') return POSTER_FILE;
   return archiveField ? `months/${archiveField}.json` : null;
 }
 
@@ -237,6 +241,12 @@ async function loadFile(file) {
         const user = String(v.visitUser ?? '').trim() || 'Ukjent bruker';
         return { line1: place, line2: user, label: `${place} ${user}` };
       });
+    } else if (file === POSTER_FILE) {
+      data.entries = (data.entries || []).map(p => {
+        const main = String(p.ControlDescription ?? '').trim() || 'Ukjent post';
+        const sub = [p.Kommune, p.Fylke].map(x => String(x ?? '').trim()).filter(Boolean).join(', ');
+        return { rank: p.rank, points: p.visits, label: main, sub, search: `${main} ${sub}` };
+      });
     } else if (file === FYLKE_FILE) {
       data.byName = {};
       data.names = [];
@@ -279,7 +289,9 @@ function render() {
       ? 'Fylkeslistene oppdateres hver natt.'
       : view === 'alltime'
         ? alltimeFooter()
-        : 'Oppdateres jevnlig mellom kl. 09 og 24.';
+        : view === 'poster'
+          ? posterFooter()
+          : 'Oppdateres jevnlig mellom kl. 09 og 24.';
 
   const file = fileFor(view);
   if (!file) { updatedEl.textContent = ''; message('Ingen tidligere måneder er lagret ennå.'); return; }
@@ -295,16 +307,17 @@ function render() {
 
   const all = view === 'fylker' ? (data.byName[fylke] || []) : data.entries;
   const q = searchEl.value.trim().toLowerCase();
-  const rows = q ? all.filter(e => e.label.toLowerCase().includes(q)) : all;
+  const rows = q ? all.filter(e => (e.search || e.label).toLowerCase().includes(q)) : all;
 
   if (!rows.length) {
-    if (q) message(view === 'visits'
-      ? `Ingen besøk passer med «${searchEl.value.trim()}».`
+    if (q) message(view === 'visits' || view === 'poster'
+      ? `Ingen ${view === 'poster' ? 'poster' : 'besøk'} passer med «${searchEl.value.trim()}».`
       : `Ingen navn eller kommuner inneholder «${searchEl.value.trim()}».`);
     else if (view === 'year') message('Listen er tom.');
     else if (view === 'visits') message('Ingen besøk er registrert i dag ennå.');
     else if (view === 'fylker') message(`Ingen i ${fylke || 'dette fylket'} har poeng ennå.`);
     else if (view === 'alltime') message('Adelskalenderen er tom.');
+    else if (view === 'poster') message('Ingen besøk er registrert ennå.');
     else message('Ingen fikk poeng denne måneden.');
     return;
   }
@@ -330,6 +343,11 @@ function render() {
       const count = Object.keys(e.years).length;
       const sub = document.createElement('span'); sub.className = 'sub';
       sub.textContent = `Poeng i ${count} av ${yearSpan()} år`;
+      n.append(sub);
+    }
+    if (view === 'poster' && e.sub) {
+      const sub = document.createElement('span'); sub.className = 'sub';
+      setName(sub, e.sub, q);
       n.append(sub);
     }
     const s = document.createElement('span'); s.className = 'score'; s.textContent = fmt.format(e.points);
@@ -398,6 +416,24 @@ function alltimeFooter() {
   return `Summen av alle poeng fra ${d.fromYear} til ${d.toYear}.${total}`;
 }
 
+function posterFooter() {
+  const d = cache[POSTER_FILE] && cache[POSTER_FILE].data;
+  if (!d) return '';
+  const totals = d.totalVisits
+    ? ` ${fmt.format(d.totalVisits)} besøk totalt på ${fmt.format(d.totalControls || 0)} poster.`
+    : '';
+  return `Antall besøk per post i ${d.year}.${totals}`;
+}
+
+async function loadPoster() {
+  await fetchList(POSTER_FILE);
+  const entry = cache[POSTER_FILE];
+  const ok = entry && entry.data && entry.data.entries.length;
+  posterTab.hidden = !ok;
+  if (!ok && view === 'poster') view = 'year';
+  render();
+}
+
 async function loadAlltime() {
   await fetchList(ALLTIME_FILE);
   const entry = cache[ALLTIME_FILE];
@@ -450,6 +486,7 @@ fetchList('monthlist.json');
 loadArchiveIndex();
 loadFylker();
 loadAlltime();
+loadPoster();
 </script>
 </body>
 </html>
