@@ -1,0 +1,1408 @@
+{
+  "year": "2026",
+  "generatedAt": "2026-10-30T15:49:27Z",
+  "totalVisits": 261156,
+  "totalControls": 21478,
+  "entries": [
+    {
+      "rank": 1,
+      "ControlDescription": "Skjeberghallen 1",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 249
+    },
+    {
+      "rank": 2,
+      "ControlDescription": "Borg VGS 2",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 224
+    },
+    {
+      "rank": 3,
+      "ControlDescription": "Kala",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 204
+    },
+    {
+      "rank": 4,
+      "ControlDescription": "Kala 2",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 203
+    },
+    {
+      "rank": 5,
+      "ControlDescription": "Havnehagen",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 202
+    },
+    {
+      "rank": 6,
+      "ControlDescription": "Kala 1",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 199
+    },
+    {
+      "rank": 7,
+      "ControlDescription": "Klavestad 5",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 182
+    },
+    {
+      "rank": 8,
+      "ControlDescription": "Spikersuppa",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 175
+    },
+    {
+      "rank": 9,
+      "ControlDescription": "Oslo S",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 169
+    },
+    {
+      "rank": 10,
+      "ControlDescription": "Oslo Rådhus",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 156
+    },
+    {
+      "rank": 11,
+      "ControlDescription": "Fjelldal",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 153
+    },
+    {
+      "rank": 12,
+      "ControlDescription": "Brygga",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 152
+    },
+    {
+      "rank": 13,
+      "ControlDescription": "Slottsparken",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 150
+    },
+    {
+      "rank": 13,
+      "ControlDescription": "Minneparken",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 150
+    },
+    {
+      "rank": 15,
+      "ControlDescription": "Lindahlplan",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 149
+    },
+    {
+      "rank": 16,
+      "ControlDescription": "Klavestad 4",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 146
+    },
+    {
+      "rank": 16,
+      "ControlDescription": "Hortensskogen syd",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 146
+    },
+    {
+      "rank": 18,
+      "ControlDescription": "Karljohansvern 2",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 145
+    },
+    {
+      "rank": 19,
+      "ControlDescription": "Slottsparken 2",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 144
+    },
+    {
+      "rank": 19,
+      "ControlDescription": "Kyststien 2",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 144
+    },
+    {
+      "rank": 21,
+      "ControlDescription": "Esso-skogen 3",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 143
+    },
+    {
+      "rank": 22,
+      "ControlDescription": "Kyststien 1",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 142
+    },
+    {
+      "rank": 22,
+      "ControlDescription": "Bøkeskogen 3",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 142
+    },
+    {
+      "rank": 22,
+      "ControlDescription": "Karljohansvern 1",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 142
+    },
+    {
+      "rank": 25,
+      "ControlDescription": "Bromsveien",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 141
+    },
+    {
+      "rank": 25,
+      "ControlDescription": "Borrehaugene",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 141
+    },
+    {
+      "rank": 27,
+      "ControlDescription": "Borrehaugene 2",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 140
+    },
+    {
+      "rank": 27,
+      "ControlDescription": "Kala 3",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 140
+    },
+    {
+      "rank": 29,
+      "ControlDescription": "Alby",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 138
+    },
+    {
+      "rank": 29,
+      "ControlDescription": "Hortenskogen",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 138
+    },
+    {
+      "rank": 31,
+      "ControlDescription": "Bøkeskogen 2",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 135
+    },
+    {
+      "rank": 31,
+      "ControlDescription": "Ilene naturreservat 1",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 135
+    },
+    {
+      "rank": 33,
+      "ControlDescription": "Kyststien 5",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 133
+    },
+    {
+      "rank": 33,
+      "ControlDescription": "Grevestien",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 133
+    },
+    {
+      "rank": 35,
+      "ControlDescription": "Ilene Våtmarkssenter",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 132
+    },
+    {
+      "rank": 35,
+      "ControlDescription": "Tønsberg 20",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 132
+    },
+    {
+      "rank": 35,
+      "ControlDescription": "Klavestad 3",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 132
+    },
+    {
+      "rank": 35,
+      "ControlDescription": "Ilene naturreservat 2",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 132
+    },
+    {
+      "rank": 39,
+      "ControlDescription": "Bøkeskogen 7",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 131
+    },
+    {
+      "rank": 39,
+      "ControlDescription": "Bøkeskogen 4",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 131
+    },
+    {
+      "rank": 41,
+      "ControlDescription": "Gunnarsbøparken",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 129
+    },
+    {
+      "rank": 41,
+      "ControlDescription": "Kaldnes",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 129
+    },
+    {
+      "rank": 43,
+      "ControlDescription": "Bøkeskogen 5",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 128
+    },
+    {
+      "rank": 43,
+      "ControlDescription": "Lystlunden 2",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 128
+    },
+    {
+      "rank": 45,
+      "ControlDescription": "Esso-skogen 1",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 127
+    },
+    {
+      "rank": 46,
+      "ControlDescription": "Tønsberg Kajakklubb",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 126
+    },
+    {
+      "rank": 47,
+      "ControlDescription": "Jarlsø 3",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 125
+    },
+    {
+      "rank": 47,
+      "ControlDescription": "Jarlsø 1",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 125
+    },
+    {
+      "rank": 47,
+      "ControlDescription": "Borrehaugene 3",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 125
+    },
+    {
+      "rank": 47,
+      "ControlDescription": "Eikestranda",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 125
+    },
+    {
+      "rank": 51,
+      "ControlDescription": "Jarlsø 2",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 124
+    },
+    {
+      "rank": 51,
+      "ControlDescription": "Vallø",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 124
+    },
+    {
+      "rank": 51,
+      "ControlDescription": "Haugar",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 124
+    },
+    {
+      "rank": 51,
+      "ControlDescription": "Jarlsø",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 124
+    },
+    {
+      "rank": 51,
+      "ControlDescription": "Jarlsø 4",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 124
+    },
+    {
+      "rank": 56,
+      "ControlDescription": "Ringshaug 5",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 123
+    },
+    {
+      "rank": 57,
+      "ControlDescription": "Ringshaug",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 122
+    },
+    {
+      "rank": 57,
+      "ControlDescription": "Ringshaug 6",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 122
+    },
+    {
+      "rank": 57,
+      "ControlDescription": "Hjertnes",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 122
+    },
+    {
+      "rank": 60,
+      "ControlDescription": "Prins Fredriks bastion",
+      "Kommune": "Fredrikstad",
+      "Fylke": "Østfold",
+      "visits": 121
+    },
+    {
+      "rank": 60,
+      "ControlDescription": "Albystranda",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 121
+    },
+    {
+      "rank": 62,
+      "ControlDescription": "Kyststien 4",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 120
+    },
+    {
+      "rank": 62,
+      "ControlDescription": "Tøihusplassen",
+      "Kommune": "Fredrikstad",
+      "Fylke": "Østfold",
+      "visits": 120
+    },
+    {
+      "rank": 62,
+      "ControlDescription": "Korterød",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 120
+    },
+    {
+      "rank": 62,
+      "ControlDescription": "Borrehaugene 1",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 120
+    },
+    {
+      "rank": 62,
+      "ControlDescription": "Bøkeskogen 6",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 120
+    },
+    {
+      "rank": 62,
+      "ControlDescription": "Galleri Klavestad",
+      "Kommune": "Fredrikstad",
+      "Fylke": "Østfold",
+      "visits": 120
+    },
+    {
+      "rank": 62,
+      "ControlDescription": "Kyststien 3",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 120
+    },
+    {
+      "rank": 62,
+      "ControlDescription": "Lystlunden",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 120
+    },
+    {
+      "rank": 70,
+      "ControlDescription": "Aker Brygge",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 119
+    },
+    {
+      "rank": 70,
+      "ControlDescription": "Slottsfjellet",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 119
+    },
+    {
+      "rank": 72,
+      "ControlDescription": "Esso-skogen 2",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 118
+    },
+    {
+      "rank": 72,
+      "ControlDescription": "Bøkeskogen 1",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 118
+    },
+    {
+      "rank": 72,
+      "ControlDescription": "Prins Christians bastion",
+      "Kommune": "Fredrikstad",
+      "Fylke": "Østfold",
+      "visits": 118
+    },
+    {
+      "rank": 72,
+      "ControlDescription": "Horten havn",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 118
+    },
+    {
+      "rank": 76,
+      "ControlDescription": "Kyststien 2",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 117
+    },
+    {
+      "rank": 76,
+      "ControlDescription": "Tallakshavn",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 117
+    },
+    {
+      "rank": 78,
+      "ControlDescription": "N. Trubervik",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 116
+    },
+    {
+      "rank": 78,
+      "ControlDescription": "Husvik 4",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 116
+    },
+    {
+      "rank": 78,
+      "ControlDescription": "Kyststien 1",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 116
+    },
+    {
+      "rank": 81,
+      "ControlDescription": "Prinsesse Charlottes bastion",
+      "Kommune": "Fredrikstad",
+      "Fylke": "Østfold",
+      "visits": 115
+    },
+    {
+      "rank": 81,
+      "ControlDescription": "Alby 2",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 115
+    },
+    {
+      "rank": 81,
+      "ControlDescription": "Kyststien 3",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 115
+    },
+    {
+      "rank": 84,
+      "ControlDescription": "Hjertnesskogen 1",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 114
+    },
+    {
+      "rank": 84,
+      "ControlDescription": "Badeparken 1",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 114
+    },
+    {
+      "rank": 86,
+      "ControlDescription": "Vollgrav, Gamlebyen syd",
+      "Kommune": "Fredrikstad",
+      "Fylke": "Østfold",
+      "visits": 113
+    },
+    {
+      "rank": 86,
+      "ControlDescription": "Hevingen 2",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 113
+    },
+    {
+      "rank": 86,
+      "ControlDescription": "Teieskogen 4",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 113
+    },
+    {
+      "rank": 86,
+      "ControlDescription": "Strandvika",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 113
+    },
+    {
+      "rank": 90,
+      "ControlDescription": "Teie Skole",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 112
+    },
+    {
+      "rank": 90,
+      "ControlDescription": "Teieskogen 1",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 112
+    },
+    {
+      "rank": 92,
+      "ControlDescription": "Mølen 3",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 111
+    },
+    {
+      "rank": 92,
+      "ControlDescription": "Yksnøy Post 1",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 111
+    },
+    {
+      "rank": 92,
+      "ControlDescription": "Teieskogen 3",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 111
+    },
+    {
+      "rank": 92,
+      "ControlDescription": "Langgrunn",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 111
+    },
+    {
+      "rank": 92,
+      "ControlDescription": "Dulpen",
+      "Kommune": "Holmestrand",
+      "Fylke": "Vestfold",
+      "visits": 111
+    },
+    {
+      "rank": 92,
+      "ControlDescription": "Teieskogen 6",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 111
+    },
+    {
+      "rank": 98,
+      "ControlDescription": "Edvard Munch",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 110
+    },
+    {
+      "rank": 98,
+      "ControlDescription": "Klavestad 2",
+      "Kommune": "Sarpsborg",
+      "Fylke": "Østfold",
+      "visits": 110
+    },
+    {
+      "rank": 98,
+      "ControlDescription": "Skallevoldstranda 2",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 110
+    },
+    {
+      "rank": 98,
+      "ControlDescription": "Trubervik",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 110
+    },
+    {
+      "rank": 98,
+      "ControlDescription": "Ertsvika",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 110
+    },
+    {
+      "rank": 98,
+      "ControlDescription": "Raffeneri",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 110
+    },
+    {
+      "rank": 104,
+      "ControlDescription": "Badeparken 2",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 109
+    },
+    {
+      "rank": 104,
+      "ControlDescription": "Skallevoldstranda",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 109
+    },
+    {
+      "rank": 104,
+      "ControlDescription": "Indre Havn 1",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 109
+    },
+    {
+      "rank": 104,
+      "ControlDescription": "Slagen 1",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 109
+    },
+    {
+      "rank": 104,
+      "ControlDescription": "Sjøbadet",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 109
+    },
+    {
+      "rank": 104,
+      "ControlDescription": "Mølen 2",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 109
+    },
+    {
+      "rank": 110,
+      "ControlDescription": "Vesterøya, Folehavna fort",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 108
+    },
+    {
+      "rank": 110,
+      "ControlDescription": "Folehavna",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 108
+    },
+    {
+      "rank": 110,
+      "ControlDescription": "Tjuvholmen",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 108
+    },
+    {
+      "rank": 110,
+      "ControlDescription": "Sandefjord kirke",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 108
+    },
+    {
+      "rank": 110,
+      "ControlDescription": "Yksnøy Post 4",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 108
+    },
+    {
+      "rank": 110,
+      "ControlDescription": "Birkely",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 108
+    },
+    {
+      "rank": 116,
+      "ControlDescription": "Greveskogen 2",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 107
+    },
+    {
+      "rank": 116,
+      "ControlDescription": "Kanalen 2",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 107
+    },
+    {
+      "rank": 116,
+      "ControlDescription": "Teieskogen 7",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 107
+    },
+    {
+      "rank": 119,
+      "ControlDescription": "Teieskogen 5",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 105
+    },
+    {
+      "rank": 119,
+      "ControlDescription": "Fjærholmen",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 105
+    },
+    {
+      "rank": 119,
+      "ControlDescription": "Operaen",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 105
+    },
+    {
+      "rank": 119,
+      "ControlDescription": "Yksnøy Post 3",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 105
+    },
+    {
+      "rank": 119,
+      "ControlDescription": "Fjærholmen 1",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 105
+    },
+    {
+      "rank": 119,
+      "ControlDescription": "Åsgårdstrand Badeplass",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 105
+    },
+    {
+      "rank": 119,
+      "ControlDescription": "Tønsberg Tønne",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 105
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Hjertnesskogen 4",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Rosanesparken",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Seiler'n",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Rosanes 1",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Rosanes 2",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Folehavna Post 4",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Rosanes 3",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Botanisk hage  4",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Folehavna Post 5",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Rosahaugparken",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 126,
+      "ControlDescription": "Husvik 5",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 104
+    },
+    {
+      "rank": 137,
+      "ControlDescription": "Fleischerbrygge 3",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 103
+    },
+    {
+      "rank": 137,
+      "ControlDescription": "Speiderhuset",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 103
+    },
+    {
+      "rank": 139,
+      "ControlDescription": "Dronningensgate",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 102
+    },
+    {
+      "rank": 139,
+      "ControlDescription": "Yksnøy Post 2",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 102
+    },
+    {
+      "rank": 139,
+      "ControlDescription": "Kirkeparken",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 102
+    },
+    {
+      "rank": 139,
+      "ControlDescription": "UiT 1",
+      "Kommune": "Tromsø",
+      "Fylke": "Troms",
+      "visits": 102
+    },
+    {
+      "rank": 139,
+      "ControlDescription": "Indre Havn 2",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 102
+    },
+    {
+      "rank": 139,
+      "ControlDescription": "Botanisk hage  2",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 102
+    },
+    {
+      "rank": 139,
+      "ControlDescription": "Mølen 5",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 102
+    },
+    {
+      "rank": 146,
+      "ControlDescription": "Slagen 2",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 101
+    },
+    {
+      "rank": 146,
+      "ControlDescription": "Fjærholmen 3",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 101
+    },
+    {
+      "rank": 146,
+      "ControlDescription": "Teieskogen 8",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 101
+    },
+    {
+      "rank": 146,
+      "ControlDescription": "Grev Wedels plass",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 101
+    },
+    {
+      "rank": 146,
+      "ControlDescription": "Yksnøy Post 5",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 101
+    },
+    {
+      "rank": 146,
+      "ControlDescription": "Moss kirke",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 101
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Akebakke",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Fleischerbrygge 4",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Slagenhallen",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Mølen",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Frodeåsen",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Botanisk Hage",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Gangbroa",
+      "Kommune": "Fredrikstad",
+      "Fylke": "Østfold",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Alby 5",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Vestfoldbanen 8",
+      "Kommune": "Holmestrand",
+      "Fylke": "Vestfold",
+      "visits": 100
+    },
+    {
+      "rank": 152,
+      "ControlDescription": "Husøy",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 100
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "UiT 2",
+      "Kommune": "Tromsø",
+      "Fylke": "Troms",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Albyskogen",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Hydro 1",
+      "Kommune": "Holmestrand",
+      "Fylke": "Vestfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Ringshaug 4",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Alby 4",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Sauesund",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Botanisk hage  3",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Mølen 6",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Husøy 1",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Eik 1",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Preståsen",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Skjerpeåsen",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 99
+    },
+    {
+      "rank": 162,
+      "ControlDescription": "Alby 3",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 99
+    },
+    {
+      "rank": 175,
+      "ControlDescription": "Youngstorget",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 98
+    },
+    {
+      "rank": 175,
+      "ControlDescription": "Hydro 3",
+      "Kommune": "Holmestrand",
+      "Fylke": "Vestfold",
+      "visits": 98
+    },
+    {
+      "rank": 175,
+      "ControlDescription": "Max Manus",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 98
+    },
+    {
+      "rank": 175,
+      "ControlDescription": "Fleischerbrygge 5",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 98
+    },
+    {
+      "rank": 175,
+      "ControlDescription": "Nedre Foss park",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 98
+    },
+    {
+      "rank": 175,
+      "ControlDescription": "Knutsrød",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 98
+    },
+    {
+      "rank": 181,
+      "ControlDescription": "Tønsberg 8",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 97
+    },
+    {
+      "rank": 181,
+      "ControlDescription": "Mølen 4",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 97
+    },
+    {
+      "rank": 181,
+      "ControlDescription": "Reierbukta",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 97
+    },
+    {
+      "rank": 181,
+      "ControlDescription": "Kanalen 1",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 97
+    },
+    {
+      "rank": 181,
+      "ControlDescription": "Munks tårn",
+      "Kommune": "Oslo",
+      "Fylke": "Oslo",
+      "visits": 97
+    },
+    {
+      "rank": 181,
+      "ControlDescription": "Preståsen 6",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 97
+    },
+    {
+      "rank": 187,
+      "ControlDescription": "Tønsberg 7",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 96
+    },
+    {
+      "rank": 187,
+      "ControlDescription": "Hydro 2",
+      "Kommune": "Holmestrand",
+      "Fylke": "Vestfold",
+      "visits": 96
+    },
+    {
+      "rank": 187,
+      "ControlDescription": "Hortenmarka 8",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 96
+    },
+    {
+      "rank": 187,
+      "ControlDescription": "Sølvkrona",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 96
+    },
+    {
+      "rank": 187,
+      "ControlDescription": "Frodåsen",
+      "Kommune": "Tønsberg",
+      "Fylke": "Vestfold",
+      "visits": 96
+    },
+    {
+      "rank": 192,
+      "ControlDescription": "Botanisk hage 4",
+      "Kommune": "Tromsø",
+      "Fylke": "Troms",
+      "visits": 95
+    },
+    {
+      "rank": 192,
+      "ControlDescription": "Teieskogen 2",
+      "Kommune": "Færder",
+      "Fylke": "Vestfold",
+      "visits": 95
+    },
+    {
+      "rank": 192,
+      "ControlDescription": "Hjertnesskogen 3",
+      "Kommune": "Sandefjord",
+      "Fylke": "Vestfold",
+      "visits": 95
+    },
+    {
+      "rank": 192,
+      "ControlDescription": "Hortenmarka 20",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 95
+    },
+    {
+      "rank": 196,
+      "ControlDescription": "Kyststien 17",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 94
+    },
+    {
+      "rank": 196,
+      "ControlDescription": "Rødsåsen",
+      "Kommune": "Moss",
+      "Fylke": "Østfold",
+      "visits": 94
+    },
+    {
+      "rank": 196,
+      "ControlDescription": "Hove",
+      "Kommune": "Arendal",
+      "Fylke": "Aust-Agder",
+      "visits": 94
+    },
+    {
+      "rank": 196,
+      "ControlDescription": "Fredriksvern",
+      "Kommune": "Larvik",
+      "Fylke": "Vestfold",
+      "visits": 94
+    },
+    {
+      "rank": 196,
+      "ControlDescription": "Jutestrand",
+      "Kommune": "Horten",
+      "Fylke": "Vestfold",
+      "visits": 94
+    }
+  ]
+}
