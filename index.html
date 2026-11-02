@@ -109,16 +109,16 @@
 <body>
 <main class="wrap">
   <p class="updated" id="updated">Henter liste …</p>
-  <h1>Toppliste</h1>
+  <h1 id="title">Toppliste</h1>
 
-  <div class="tabs" role="tablist" aria-label="Velg periode">
+  <div class="tabs" role="tablist" aria-label="Velg liste">
     <button class="tab" role="tab" id="tab-year" data-view="year" aria-selected="true">2026</button>
     <button class="tab" role="tab" id="tab-month" data-view="month" aria-selected="false">Denne måneden</button>
+    <button class="tab" role="tab" id="tab-fylker" data-view="fylker" aria-selected="false" hidden>Område</button>
+    <button class="tab" role="tab" id="tab-visits" data-view="visits" aria-selected="false">Dagens besøk</button>
     <button class="tab" role="tab" id="tab-archive" data-view="archive" aria-selected="false" hidden>Tidligere</button>
-    <button class="tab" role="tab" id="tab-fylker" data-view="fylker" aria-selected="false" hidden>Fylker</button>
     <button class="tab" role="tab" id="tab-alltime" data-view="alltime" aria-selected="false" hidden>Adelskalender</button>
     <button class="tab" role="tab" id="tab-poster" data-view="poster" aria-selected="false" hidden>Poster</button>
-    <button class="tab" role="tab" id="tab-visits" data-view="visits" aria-selected="false">Besøk</button>
   </div>
 
   <div class="controls">
@@ -127,7 +127,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </div>
     <div class="select-box" id="fylke-box" hidden>
-      <select class="month-select" id="fylke-select" aria-label="Velg fylke"></select>
+      <select class="month-select" id="fylke-select" aria-label="Velg område"></select>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </div>
     <div class="search-box">
@@ -144,6 +144,7 @@
 const listEl = document.getElementById('list');
 const searchEl = document.getElementById('search');
 const updatedEl = document.getElementById('updated');
+const titleEl = document.getElementById('title');
 const footerEl = document.getElementById('footer');
 const selectBox = document.getElementById('select-box');
 const selectEl = document.getElementById('month-select');
@@ -280,13 +281,17 @@ function render() {
     tabsEl.scrollLeft = left - (tabsEl.clientWidth - activeTab.offsetWidth) / 2;   // midtstiller valgt fane
   }
   updateTabFade();
+  const posterData = cache[POSTER_FILE] && cache[POSTER_FILE].data;
+  titleEl.textContent = view === 'poster'
+    ? `Mest besøkte poster ${posterData && posterData.year ? posterData.year : ''}`.trim()
+    : 'Toppliste';
   listEl.setAttribute('aria-labelledby', 'tab-' + view);
   selectBox.hidden = view !== 'archive';
   fylkeBox.hidden = view !== 'fylker';
   footerEl.textContent = view === 'archive'
     ? 'Sluttresultat for valgt måned.'
     : view === 'fylker'
-      ? 'Fylkeslistene oppdateres hver natt.'
+      ? 'Områdelistene oppdateres hver natt.'
       : view === 'alltime'
         ? alltimeFooter()
         : view === 'poster'
@@ -315,7 +320,7 @@ function render() {
       : `Ingen navn eller kommuner inneholder «${searchEl.value.trim()}».`);
     else if (view === 'year') message('Listen er tom.');
     else if (view === 'visits') message('Ingen besøk er registrert i dag ennå.');
-    else if (view === 'fylker') message(`Ingen i ${fylke || 'dette fylket'} har poeng ennå.`);
+    else if (view === 'fylker') message(`Ingen i ${fylke || 'dette området'} har poeng ennå.`);
     else if (view === 'alltime') message('Adelskalenderen er tom.');
     else if (view === 'poster') message('Ingen besøk er registrert ennå.');
     else message('Ingen fikk poeng denne måneden.');
