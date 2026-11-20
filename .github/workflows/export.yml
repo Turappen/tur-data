@@ -122,7 +122,7 @@ jobs:
               --data-urlencode "where=$WHERE" \
               --data-urlencode 'include=visitControl' \
               --data-urlencode 'keys=visitUser,visitDate,visitControl.ControlDescription,visitControl.Kommune,visitControl.Fylke' \
-              --data-urlencode 'order=visitDate' \
+              --data-urlencode 'order=-visitDate' \
               --data-urlencode 'limit=1000' \
               --data-urlencode "skip=$SKIP" \
               > "visits_pages/$PAGE.json"
@@ -132,7 +132,7 @@ jobs:
           done
 
           jq -sc --arg d "$TODAY" '
-            [ .[].results[] ] | sort_by(.visitDate.iso? // .visitDate) as $v
+            [ .[].results[] ] | sort_by(.visitDate.iso? // .visitDate) | reverse as $v
             | {
                 date: $d,
                 generatedAt: (now | todateiso8601),
