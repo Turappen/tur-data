@@ -103,6 +103,8 @@
   mark { background: #EEF3EF; color: inherit; }
 
   .msg { display: block; padding: 40px 0; text-align: center; color: var(--muted); border: 0; }
+  .summary { margin: 20px 0 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .summary[hidden] { display: none; }
   footer { margin-top: 32px; font-size: 0.8rem; color: var(--muted); }
 </style>
 </head>
@@ -136,6 +138,7 @@
     </div>
   </div>
 
+  <p class="summary" id="summary" hidden></p>
   <ol id="list" role="tabpanel"></ol>
   <footer id="footer"></footer>
 </main>
@@ -145,6 +148,7 @@ const listEl = document.getElementById('list');
 const searchEl = document.getElementById('search');
 const updatedEl = document.getElementById('updated');
 const titleEl = document.getElementById('title');
+const summaryEl = document.getElementById('summary');
 const footerEl = document.getElementById('footer');
 const selectBox = document.getElementById('select-box');
 const selectEl = document.getElementById('month-select');
@@ -288,6 +292,7 @@ function render() {
   listEl.setAttribute('aria-labelledby', 'tab-' + view);
   selectBox.hidden = view !== 'archive';
   fylkeBox.hidden = view !== 'fylker';
+  summaryEl.hidden = true;
   footerEl.textContent = view === 'archive'
     ? 'Sluttresultat for valgt måned.'
     : view === 'fylker'
@@ -309,6 +314,12 @@ function render() {
   updatedEl.textContent = view === 'archive'
     ? `${splitField(data.month).name} ${splitField(data.month).year}`
     : updatedText(data.generatedAt);
+
+  if (view === 'visits') {
+    const count = Number.isFinite(data.count) ? data.count : data.entries.length;
+    summaryEl.textContent = `Antall postbesøk i dag: ${fmt.format(count)}`;
+    summaryEl.hidden = false;
+  }
 
   const all = view === 'fylker' ? (data.byName[fylke] || []) : data.entries;
   const q = searchEl.value.trim().toLowerCase();
