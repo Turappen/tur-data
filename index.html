@@ -316,7 +316,8 @@ function render() {
     : updatedText(data.generatedAt);
 
   if (view === 'visits') {
-    const count = Number.isFinite(data.count) ? data.count : data.entries.length;
+    const count = Number.isFinite(data.totalCount) ? data.totalCount
+      : Number.isFinite(data.count) ? data.count : data.entries.length;
     summaryEl.textContent = `Antall postbesøk i dag: ${fmt.format(count)}`;
     summaryEl.hidden = false;
   }
