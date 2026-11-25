@@ -131,11 +131,24 @@ jobs:
             SKIP=$((SKIP+1000))
           done
 
-          jq -sc --arg d "$TODAY" '
+          # Teller alle dagens besøk, også de som har reservert seg (henter ingen data, bare antallet)
+          WHERE_ALL=$(jq -cn --arg s "$START" --arg e "$END" '{
+            visitDate: { "$gte": {"__type":"Date","iso":$s}, "$lt": {"__type":"Date","iso":$e} }
+          }')
+          TOTAL=$(curl -sf -G "https://parseapi.back4app.com/classes/Visits$YEAR" \
+            -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+            -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+            --data-urlencode "where=$WHERE_ALL" \
+            --data-urlencode 'count=1' \
+            --data-urlencode 'limit=0' \
+            | jq '.count // 0')
+
+          jq -sc --arg d "$TODAY" --argjson total "$TOTAL" '
             [ .[].results[] ] | sort_by(.visitDate.iso? // .visitDate) | reverse as $v
             | {
                 date: $d,
                 generatedAt: (now | todateiso8601),
+                totalCount: $total,
                 count: ($v | length),
                 visits: [ $v[] | {
                   visitUser: (if (.visitUser | type) == "object" then .visitUser.objectId else .visitUser end),
@@ -145,7 +158,7 @@ jobs:
                   Fylke: (.visitControl.Fylke // null)
                 } ]
               }' visits_pages/*.json > public/visits.json
-          echo "Fant $(jq .count public/visits.json) besøk"
+          echo "Besøk i dag totalt: $TOTAL, uten reservasjon (vises i listen): $(jq .count public/visits.json)"
 
       - uses: actions/upload-pages-artifact@v5
         with:
