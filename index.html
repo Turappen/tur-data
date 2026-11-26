@@ -105,6 +105,7 @@
   .msg { display: block; padding: 40px 0; text-align: center; color: var(--muted); border: 0; }
   .summary { margin: 20px 0 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .summary[hidden] { display: none; }
+  .summary-note { display: block; margin-top: 2px; font-size: 0.85rem; font-weight: 400; color: var(--muted); }
   footer { margin-top: 32px; font-size: 0.8rem; color: var(--muted); }
 </style>
 </head>
@@ -319,6 +320,10 @@ function render() {
     const count = Number.isFinite(data.totalCount) ? data.totalCount
       : Number.isFinite(data.count) ? data.count : data.entries.length;
     summaryEl.textContent = `Antall postbesøk i dag: ${fmt.format(count)}`;
+    const note = document.createElement('span');
+    note.className = 'summary-note';
+    note.textContent = 'Brukere som har reservert seg vises ikke i listen';
+    summaryEl.append(note);
     summaryEl.hidden = false;
   }
 
