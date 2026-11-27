@@ -69,6 +69,18 @@ jobs:
 
           echo "Totalt: $(jq .total "besok/$NAME.json") besøk"
 
+          # Oversikt over alle månedsfiler, sortert etter år og måned
+          for f in besok/Visits*.json; do
+            B=$(basename "$f" .json); B=${B#Visits}
+            [[ "$B" =~ ^([^0-9]+)([0-9]{4})$ ]] || continue
+            for i in "${!MONTHS[@]}"; do
+              if [ "${MONTHS[$i]}" = "${BASH_REMATCH[1]}" ]; then
+                printf '%s %02d %s\n' "${BASH_REMATCH[2]}" "$((i+1))" "$B"
+              fi
+            done
+          done | sort | awk '{print $3}' | jq -R . | jq -sc '{months: .}' > besok/index.json
+          cat besok/index.json
+
       - name: Lagre fila i repoet
         shell: bash
         run: |
