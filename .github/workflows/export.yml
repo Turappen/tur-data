@@ -2,7 +2,7 @@ name: Eksporter data fra Back4App
 
 on:
   schedule:
-    - cron: '57 9-23 * * *'   # xx:13 og xx:43 fra kl. 09 til 23
+    - cron: '13,43 9-23 * * *'   # xx:13 og xx:43 fra kl. 09 til 23
       timezone: 'Europe/Oslo'
   workflow_dispatch:
 
@@ -33,6 +33,7 @@ jobs:
           if [ -d fylker ]; then cp -r fylker public/; fi
           if [ -d alltime ]; then cp -r alltime public/; fi
           if [ -d poster ]; then cp -r poster public/; fi
+          if [ -d besok ]; then cp -r besok public/; fi
 
           YEAR=$(TZ=Europe/Oslo date +%Y)
           FIELD="Points$YEAR"

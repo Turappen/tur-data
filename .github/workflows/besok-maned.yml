@@ -1,0 +1,89 @@
+name: Tell besøk per dag i måneden
+
+on:
+  schedule:
+    - cron: '50 2 * * *'         # hver natt kl. 02:50
+      timezone: 'Europe/Oslo'
+  workflow_dispatch:             # kan også kjøres manuelt
+
+permissions:
+  contents: write                # for å lagre fila i repoet
+  actions: write                 # for å starte publiseringen etterpå
+
+concurrency:
+  group: archive                 # venter på andre jobber som lagrer i repoet
+  cancel-in-progress: false
+
+jobs:
+  besok:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Tell besøk per dag
+        shell: bash
+        run: |
+          set -euo pipefail
+          MONTHS=(Januar Februar Mars April Mai Juni Juli August September Oktober November Desember)
+
+          # Teller til og med i går. Kjøringen natt til 1. i en ny måned
+          # fullfører dermed forrige måned.
+          YESTERDAY=$(TZ=Europe/Oslo date -d "yesterday" +%F)
+          Y=${YESTERDAY:0:4}
+          M=$((10#${YESTERDAY:5:2}))
+          MONTH="${MONTHS[$((M-1))]}${Y}"
+          NAME="Visits${MONTH}"
+          FIRST="$Y-$(printf '%02d' "$M")-01"
+          echo "Teller $NAME: $FIRST til $YESTERDAY"
+
+          : > days.jsonl
+          D="$FIRST"
+          while [[ "$D" < "$YESTERDAY" || "$D" == "$YESTERDAY" ]]; do
+            # Midnatt til midnatt norsk tid, oppgitt i UTC
+            S=$(date -u -d "TZ=\"Europe/Oslo\" $D 00:00" +%Y-%m-%dT%H:%M:%S.000Z)
+            E=$(date -u -d "TZ=\"Europe/Oslo\" $D 00:00 +1 day" +%Y-%m-%dT%H:%M:%S.000Z)
+            WHERE=$(jq -cn --arg s "$S" --arg e "$E" \
+              '{ visitDate: { "$gte": {"__type":"Date","iso":$s}, "$lt": {"__type":"Date","iso":$e} } }')
+
+            # Henter bare antallet, ingen besøksdata
+            N=$(curl -sf -G "https://parseapi.back4app.com/classes/Visits$Y" \
+              -H "X-Parse-Application-Id: ${{ secrets.B4A_APP_ID }}" \
+              -H "X-Parse-REST-API-Key: ${{ secrets.B4A_REST_KEY }}" \
+              --data-urlencode "where=$WHERE" \
+              --data-urlencode 'count=1' \
+              --data-urlencode 'limit=0' \
+              | jq '.count // 0')
+
+            echo "$D: $N"
+            jq -cn --arg d "$D" --argjson n "$N" '{date: $d, visits: $n}' >> days.jsonl
+            D=$(date -d "$D +1 day" +%F)
+          done
+
+          mkdir -p besok
+          jq -sc --arg m "$MONTH" '{
+            month: $m,
+            generatedAt: (now | todateiso8601),
+            total: (map(.visits) | add // 0),
+            days: .
+          }' days.jsonl > "besok/$NAME.json"
+
+          echo "Totalt: $(jq .total "besok/$NAME.json") besøk"
+
+      - name: Lagre fila i repoet
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add besok
+          if git diff --cached --quiet; then
+            echo "Ingen endringer"
+          else
+            git commit -m "Oppdater besøk per dag"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Publiser siden på nytt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run export.yml --ref main
