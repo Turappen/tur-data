@@ -105,6 +105,20 @@
   .msg { display: block; padding: 40px 0; text-align: center; color: var(--muted); border: 0; }
   .summary { margin: 20px 0 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .summary[hidden] { display: none; }
+  .chart { position: relative; margin: 16px 0 8px; padding-top: 22px; }
+  .chart[hidden] { display: none; }
+  .max-label { position: absolute; top: 0; left: 0; font-size: 0.75rem; color: var(--muted); }
+  .bars { display: flex; align-items: flex-end; gap: 2px; height: 160px; border-bottom: 1px solid #D6D6D6; }
+  .col { flex: 1; height: 100%; display: flex; align-items: flex-end; cursor: pointer; outline: none; }
+  .bar { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; }
+  .col.active .bar, .col:hover .bar { background: #2C4D38; }
+  .col:focus-visible { box-shadow: inset 0 0 0 2px #DCE7DF; }
+  .axis { position: relative; height: 20px; font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .axis span { position: absolute; top: 4px; transform: translateX(-50%); }
+  .tip { position: absolute; top: -6px; padding: 6px 10px; background: var(--ink); color: #FFFFFF; font-size: 0.8rem; border-radius: 6px; white-space: nowrap; pointer-events: none; }
+  .tip[hidden] { display: none; }
+  li.day-row { grid-template-columns: 1fr auto; padding: 10px 0; }
+  li.day-row .name { font-weight: 400; }
   .summary-note { display: block; margin-top: 2px; font-size: 0.85rem; font-weight: 400; color: var(--muted); }
   footer { margin-top: 32px; font-size: 0.8rem; color: var(--muted); }
 </style>
@@ -119,6 +133,7 @@
     <button class="tab" role="tab" id="tab-month" data-view="month" aria-selected="false">Denne måneden</button>
     <button class="tab" role="tab" id="tab-fylker" data-view="fylker" aria-selected="false" hidden>Område</button>
     <button class="tab" role="tab" id="tab-visits" data-view="visits" aria-selected="false">Dagens besøk</button>
+    <button class="tab" role="tab" id="tab-daily" data-view="daily" aria-selected="false" hidden>Besøk per dag</button>
     <button class="tab" role="tab" id="tab-archive" data-view="archive" aria-selected="false" hidden>Tidligere</button>
     <button class="tab" role="tab" id="tab-alltime" data-view="alltime" aria-selected="false" hidden>Adelskalender</button>
     <button class="tab" role="tab" id="tab-poster" data-view="poster" aria-selected="false" hidden>Poster</button>
@@ -133,13 +148,18 @@
       <select class="month-select" id="fylke-select" aria-label="Velg område"></select>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </div>
-    <div class="search-box">
+    <div class="select-box" id="daily-box" hidden>
+      <select class="month-select" id="daily-select" aria-label="Velg måned"></select>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <div class="search-box" id="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input class="search" id="search" type="search" placeholder="Søk etter navn eller kommune" aria-label="Søk etter navn eller kommune" autocomplete="off">
     </div>
   </div>
 
   <p class="summary" id="summary" hidden></p>
+  <div class="chart" id="chart" hidden></div>
   <ol id="list" role="tabpanel"></ol>
   <footer id="footer"></footer>
 </main>
@@ -162,6 +182,11 @@ const ALLTIME_FILE = 'alltime/alltime.json';
 const posterTab = document.getElementById('tab-poster');
 const POSTER_FILE = 'poster/poster.json';
 const FYLKE_FILE = 'fylker/fylker.json';
+const dailyTab = document.getElementById('tab-daily');
+const dailyBox = document.getElementById('daily-box');
+const dailySelect = document.getElementById('daily-select');
+const chartEl = document.getElementById('chart');
+const searchBox = document.getElementById('search-box');
 const tabs = [...document.querySelectorAll('.tab')];
 const fmt = new Intl.NumberFormat('nb-NO');
 
@@ -170,10 +195,12 @@ const cache = {};   // fil -> { data, error, loading }
 let view = 'year';
 let archiveField = null;
 let fylke = null;
+let dailyMonth = null;   // f.eks. "November2026"
 
 try {
   const saved = localStorage.getItem('view');
-  if (['month', 'archive', 'visits', 'fylker', 'alltime', 'poster'].includes(saved)) view = saved;
+  if (['month', 'archive', 'visits', 'daily', 'fylker', 'alltime', 'poster'].includes(saved)) view = saved;
+  dailyMonth = localStorage.getItem('dailyMonth');
   archiveField = localStorage.getItem('archiveMonth');
   fylke = localStorage.getItem('fylke');
 } catch {}
@@ -193,6 +220,7 @@ function fileFor(v) {
   if (v === 'fylker') return FYLKE_FILE;
   if (v === 'alltime') return ALLTIME_FILE;
   if (v === 'poster') return POSTER_FILE;
+  if (v === 'daily') return dailyMonth ? `besok/Visits${dailyMonth}.json` : null;
   return archiveField ? `months/${archiveField}.json` : null;
 }
 
@@ -247,6 +275,9 @@ async function loadFile(file) {
         const user = String(v.visitUser ?? '').trim() || 'Ukjent bruker';
         return { line1: place, line2: user, label: `${place} ${user}` };
       });
+    } else if (file.startsWith('besok/')) {
+      data.days = (data.days || []).filter(d => d && d.date).map(d => ({ date: d.date, visits: Number(d.visits) || 0 }));
+      data.entries = [];
     } else if (file === POSTER_FILE) {
       data.entries = (data.entries || []).map(p => {
         const main = String(p.ControlDescription ?? '').trim() || 'Ukjent post';
@@ -293,6 +324,9 @@ function render() {
   listEl.setAttribute('aria-labelledby', 'tab-' + view);
   selectBox.hidden = view !== 'archive';
   fylkeBox.hidden = view !== 'fylker';
+  dailyBox.hidden = view !== 'daily';
+  searchBox.hidden = view === 'daily';
+  chartEl.hidden = true;
   summaryEl.hidden = true;
   footerEl.textContent = view === 'archive'
     ? 'Sluttresultat for valgt måned.'
@@ -302,10 +336,12 @@ function render() {
         ? alltimeFooter()
         : view === 'poster'
           ? posterFooter()
-          : 'Oppdateres jevnlig mellom kl. 09 og 24.';
+          : view === 'daily'
+            ? 'Oppdateres hver natt. Alle besøk telles, også fra brukere som har reservert seg.'
+            : 'Oppdateres jevnlig mellom kl. 09 og 24.';
 
   const file = fileFor(view);
-  if (!file) { updatedEl.textContent = ''; message('Ingen tidligere måneder er lagret ennå.'); return; }
+  if (!file) { updatedEl.textContent = ''; message(view === 'daily' ? 'Ingen måneder er talt opp ennå.' : 'Ingen tidligere måneder er lagret ennå.'); return; }
 
   const entry = cache[file];
   if (!entry || entry.loading) { updatedEl.textContent = 'Henter liste …'; message('Henter liste …'); fetchList(file); return; }
@@ -315,6 +351,8 @@ function render() {
   updatedEl.textContent = view === 'archive'
     ? `${splitField(data.month).name} ${splitField(data.month).year}`
     : updatedText(data.generatedAt);
+
+  if (view === 'daily') { renderDaily(data); return; }
 
   if (view === 'visits') {
     const count = Number.isFinite(data.totalCount) ? data.totalCount
@@ -447,6 +485,127 @@ function posterFooter() {
   return `Antall besøk per post i ${d.year}.${totals}`;
 }
 
+// "2026-11-27" → Date (midt på dagen i UTC, så datoen aldri forskyves)
+function dayDate(iso) { return new Date(`${iso}T12:00:00Z`); }
+function dayLong(iso) {
+  const t = dayDate(iso).toLocaleDateString('nb-NO', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' });
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+function monthLabel(field) {
+  const { name, year } = splitField(field);
+  return `${name.toLowerCase()} ${year}`.trim();
+}
+
+function renderDaily(data) {
+  const days = data.days;
+  const total = Number.isFinite(data.total) ? data.total : days.reduce((a, d) => a + d.visits, 0);
+  summaryEl.textContent = `Besøk i ${monthLabel(data.month)}: ${fmt.format(total)}`;
+  if (days.length) {
+    const note = document.createElement('span');
+    note.className = 'summary-note';
+    note.textContent = `I snitt ${fmt.format(Math.round(total / days.length))} per dag`;
+    summaryEl.append(note);
+  }
+  summaryEl.hidden = false;
+
+  if (!days.length) { message('Ingen dager er talt opp ennå.'); return; }
+
+  // Søylediagram: én søyle per dag
+  const max = Math.max(1, ...days.map(d => d.visits));
+  const bars = document.createElement('div');
+  bars.className = 'bars';
+  const tip = document.createElement('div');
+  tip.className = 'tip';
+  tip.hidden = true;
+  const showTip = (col, d) => {
+    tip.textContent = `${dayLong(d.date)}: ${fmt.format(d.visits)} besøk`;
+    tip.hidden = false;
+    const cw = chartEl.clientWidth, tw = tip.offsetWidth;
+    const x = col.offsetLeft + col.offsetWidth / 2;
+    tip.style.left = Math.max(0, Math.min(cw - tw, x - tw / 2)) + 'px';
+    bars.querySelectorAll('.col').forEach(c => c.classList.toggle('active', c === col));
+  };
+  const hideTip = () => { tip.hidden = true; bars.querySelectorAll('.col.active').forEach(c => c.classList.remove('active')); };
+
+  days.forEach(d => {
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.tabIndex = 0;
+    col.setAttribute('aria-label', `${dayLong(d.date)}: ${d.visits} besøk`);
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = d.visits ? Math.max(2, d.visits / max * 100) + '%' : '0';
+    col.append(bar);
+    col.addEventListener('pointerenter', () => showTip(col, d));
+    col.addEventListener('click', () => showTip(col, d));
+    col.addEventListener('focus', () => showTip(col, d));
+    col.addEventListener('blur', hideTip);
+    bars.append(col);
+  });
+  bars.addEventListener('pointerleave', hideTip);
+
+  // Akse med dagnummer: 1, 5, 10, 15 … og siste dag
+  const axis = document.createElement('div');
+  axis.className = 'axis';
+  days.forEach((d, i) => {
+    const n = Number(d.date.slice(8, 10));
+    const last = i === days.length - 1;
+    const tooClose = last && n % 5 !== 0 && n % 5 < 3;   // unngå at f.eks. 25 og 26 kolliderer
+    if (n === 1 || n % 5 === 0 || (last && !tooClose)) {
+      const t = document.createElement('span');
+      t.textContent = n;
+      t.style.left = ((i + 0.5) / days.length * 100) + '%';
+      axis.append(t);
+    }
+  });
+
+  const maxLabel = document.createElement('div');
+  maxLabel.className = 'max-label';
+  maxLabel.textContent = `Høyeste: ${fmt.format(max)}`;
+
+  chartEl.replaceChildren(maxLabel, bars, axis, tip);
+  chartEl.hidden = false;
+
+  // Tabell: nyeste dag først
+  const frag = document.createDocumentFragment();
+  [...days].reverse().forEach(d => {
+    const li = document.createElement('li');
+    li.className = 'day-row';
+    const n = document.createElement('span'); n.className = 'name'; n.textContent = dayLong(d.date);
+    const s = document.createElement('span'); s.className = 'score'; s.textContent = fmt.format(d.visits);
+    li.append(n, s);
+    frag.append(li);
+  });
+  listEl.replaceChildren(frag);
+}
+
+// Leser oversikten over hvilke måneder som er talt opp
+async function loadDaily() {
+  let months = [];
+  try {
+    const res = await fetch('besok/index.json', { cache: 'no-cache' });
+    if (res.ok) months = ((await res.json()).months || []).slice().reverse();   // nyeste først
+  } catch {}
+  if (!months.length) {
+    dailyTab.hidden = true;
+    dailyMonth = null;
+    if (view === 'daily') view = 'year';
+    render();
+    return;
+  }
+  for (const f of months) {
+    const opt = document.createElement('option');
+    opt.value = f;
+    const { name, year } = splitField(f);
+    opt.textContent = `${name} ${year}`;
+    dailySelect.append(opt);
+  }
+  if (!months.includes(dailyMonth)) dailyMonth = months[0];
+  dailySelect.value = dailyMonth;
+  dailyTab.hidden = false;
+  render();
+}
+
 async function loadPoster() {
   await fetchList(POSTER_FILE);
   const entry = cache[POSTER_FILE];
@@ -500,6 +659,11 @@ fylkeSelect.addEventListener('change', () => {
   try { localStorage.setItem('fylke', fylke); } catch {}
   render();
 });
+dailySelect.addEventListener('change', () => {
+  dailyMonth = dailySelect.value;
+  try { localStorage.setItem('dailyMonth', dailyMonth); } catch {}
+  render();
+});
 searchEl.addEventListener('input', render);
 
 render();
@@ -509,6 +673,7 @@ loadArchiveIndex();
 loadFylker();
 loadAlltime();
 loadPoster();
+loadDaily();
 </script>
 </body>
 </html>
